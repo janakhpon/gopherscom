@@ -8,7 +8,6 @@ import (
 	"github.com/janakhpon/gopherscom/src/models"
 )
 
-// Create User Table
 func CreateBlogTable(db *pg.DB) error {
 	opts := &orm.CreateTableOptions{
 		IfNotExists: true,
@@ -22,7 +21,6 @@ func CreateBlogTable(db *pg.DB) error {
 	return nil
 }
 
-// Create User Table
 func CreateProfileTable(db *pg.DB) error {
 	opts := &orm.CreateTableOptions{
 		IfNotExists: true,
@@ -36,7 +34,19 @@ func CreateProfileTable(db *pg.DB) error {
 	return nil
 }
 
-// Create User Table
+func CreateUserTable(db *pg.DB) error {
+	opts := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	createError := db.CreateTable(&models.User{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("Created USER Table ")
+	return nil
+}
+
 func RemoveBlogTable(db *pg.DB) error {
 	opts := &orm.DropTableOptions{
 		IfExists: true,
@@ -51,7 +61,6 @@ func RemoveBlogTable(db *pg.DB) error {
 	return nil
 }
 
-// Create User Table
 func RemoveProfileTable(db *pg.DB) error {
 	opts := &orm.DropTableOptions{
 		IfExists: true,
@@ -66,7 +75,20 @@ func RemoveProfileTable(db *pg.DB) error {
 	return nil
 }
 
-//db connection intialized
+func RemoveUserTable(db *pg.DB) error {
+	opts := &orm.DropTableOptions{
+		IfExists: true,
+		Cascade:  true,
+	}
+	createError := db.DropTable(&models.User{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("removed User Table from Database ")
+	return nil
+}
+
 var dbConnect *pg.DB
 
 func InitiateDB(db *pg.DB) {

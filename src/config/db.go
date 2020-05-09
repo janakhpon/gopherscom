@@ -24,9 +24,15 @@ func Connect() *pg.DB {
 		log.Printf("Failed to connect")
 		os.Exit(100)
 	}
+
 	log.Printf("Connected to db")
+
+	// controllers.RemoveBlogTable(db)
+	// controllers.RemoveProfileTable(db)
+	// controllers.RemoveUserTable(db)
 	controllers.CreateBlogTable(db)
 	controllers.CreateProfileTable(db)
+	controllers.CreateUserTable(db)
 	controllers.InitiateDB(db)
 
 	return db
