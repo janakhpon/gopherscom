@@ -18,6 +18,14 @@ func ExtRouter(mode string) *gin.Engine {
 
 	router.POST("/singup", controllers.UserSignup)
 	router.POST("/signin", controllers.UserSignin)
+	router.GET("/refreshToken", controllers.RefreshToken)
+
+	authedUserOnly := router.Group("/protected/user")
+	authedUserOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedUserOnly.GET("/list", controllers.GetUserList)
+		authedUserOnly.GET("/byid", controllers.GetUser)
+	}
 
 	authedBlogOnly := router.Group("/protected/blog")
 	authedBlogOnly.Use(controllers.TokenVerifyMiddleWare())
