@@ -16,7 +16,7 @@ func ExtRouter(mode string) *gin.Engine {
 		})
 	})
 
-	router.POST("/singup", controllers.UserSignup)
+	router.POST("/signup", controllers.UserSignup)
 	router.POST("/signin", controllers.UserSignin)
 	router.GET("/refreshToken", controllers.RefreshToken)
 
