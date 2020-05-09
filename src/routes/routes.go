@@ -15,16 +15,30 @@ func ExtRouter(mode string) *gin.Engine {
 			"message": "HELLO FROM GOPHERS COMMUNITY !!!",
 		})
 	})
-	router.POST("/new", controllers.CreateBlog)
-	router.GET("/list", controllers.GetBlogList)
-	router.GET("/byid", controllers.GetBlog)
-	router.PUT("/update", controllers.UpdateBlog)
-	router.PUT("/public", controllers.SetBlogPublic)
-	router.DELETE("/remove", controllers.DeleteBlog)
-	router.GET("/profilelist", controllers.GetProfileList)
-	router.GET("/profilebyuser", controllers.GetProfileByUser)
-	router.GET("/profilebyid", controllers.GetByID)
-	router.POST("/profile", controllers.CreateProfile)
-	router.PUT("/updateprofile", controllers.UpdateProfile)
+
+	router.POST("/singup", controllers.UserSignup)
+	router.POST("/signin", controllers.UserSignin)
+
+	authedBlogOnly := router.Group("/protected/blog")
+	authedBlogOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedBlogOnly.POST("/new", controllers.CreateBlog)
+		authedBlogOnly.GET("/list", controllers.GetBlogList)
+		authedBlogOnly.GET("/byid", controllers.GetBlog)
+		authedBlogOnly.PUT("/update", controllers.UpdateBlog)
+		authedBlogOnly.PUT("/public", controllers.SetBlogPublic)
+		authedBlogOnly.DELETE("/remove", controllers.DeleteBlog)
+	}
+
+	authedProfileOnly := router.Group("/protected/profile")
+	authedProfileOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedProfileOnly.GET("/list", controllers.GetProfileList)
+		authedProfileOnly.GET("/byuser", controllers.GetProfileByUser)
+		authedProfileOnly.GET("/byid", controllers.GetByID)
+		authedProfileOnly.POST("/new", controllers.CreateProfile)
+		authedProfileOnly.PUT("/update", controllers.UpdateProfile)
+	}
+
 	return router
 }
