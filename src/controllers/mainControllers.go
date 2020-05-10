@@ -125,6 +125,45 @@ func CreateOtherTable(db *pg.DB) error {
 	return nil
 }
 
+func CreateLanguageTable(db *pg.DB) error {
+	opts := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	createError := db.CreateTable(&models.Language{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("Created LANGUAGE Table ")
+	return nil
+}
+
+func CreateFrameworkTable(db *pg.DB) error {
+	opts := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	createError := db.CreateTable(&models.Framework{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("Created FRAMEWORK Table ")
+	return nil
+}
+
+func CreatePlatformTable(db *pg.DB) error {
+	opts := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	createError := db.CreateTable(&models.Platform{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("Created PLATFORM Table ")
+	return nil
+}
+
 func RemoveBlogTable(db *pg.DB) error {
 	opts := &orm.DropTableOptions{
 		IfExists: true,
@@ -248,6 +287,48 @@ func RemoveTagTable(db *pg.DB) error {
 		return createError
 	}
 	log.Printf("removed Tag Table from Database ")
+	return nil
+}
+
+func RemoveLanguageTable(db *pg.DB) error {
+	opts := &orm.DropTableOptions{
+		IfExists: true,
+		Cascade:  true,
+	}
+	createError := db.DropTable(&models.Language{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("removed Language Table from Database ")
+	return nil
+}
+
+func RemoveFrameworkTable(db *pg.DB) error {
+	opts := &orm.DropTableOptions{
+		IfExists: true,
+		Cascade:  true,
+	}
+	createError := db.DropTable(&models.Framework{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("removed Framework Table from Database ")
+	return nil
+}
+
+func RemovePlatformTable(db *pg.DB) error {
+	opts := &orm.DropTableOptions{
+		IfExists: true,
+		Cascade:  true,
+	}
+	createError := db.DropTable(&models.Platform{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("removed Platofrm Table from Database ")
 	return nil
 }
 

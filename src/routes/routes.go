@@ -88,6 +88,36 @@ func ExtRouter(mode string) *gin.Engine {
 		authedTagOnly.DELETE("/remove", controllers.DeleteTag)
 	}
 
+	authedLanguageOnly := router.Group("/protected/language")
+	authedLanguageOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedLanguageOnly.GET("/list", controllers.GetLanguageList)
+		authedLanguageOnly.GET("/byid", controllers.GetLanguage)
+		authedLanguageOnly.POST("/new", controllers.CreateLanguage)
+		authedLanguageOnly.PUT("/update", controllers.UpdateLanguage)
+		authedLanguageOnly.DELETE("/remove", controllers.DeleteLanguage)
+	}
+
+	authedFrameworkOnly := router.Group("/protected/framework")
+	authedFrameworkOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedFrameworkOnly.GET("/list", controllers.GetFrameworkList)
+		authedFrameworkOnly.GET("/byid", controllers.GetFramework)
+		authedFrameworkOnly.POST("/new", controllers.CreateFramework)
+		authedFrameworkOnly.PUT("/update", controllers.UpdateFramework)
+		authedFrameworkOnly.DELETE("/remove", controllers.DeleteFramework)
+	}
+
+	authedDatabaseOnly := router.Group("/protected/database")
+	authedDatabaseOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedDatabaseOnly.GET("/list", controllers.GetDatabaseList)
+		authedDatabaseOnly.GET("/byid", controllers.GetDatabase)
+		authedDatabaseOnly.POST("/new", controllers.CreateDatabase)
+		authedDatabaseOnly.PUT("/update", controllers.UpdateDatabase)
+		authedDatabaseOnly.DELETE("/remove", controllers.DeleteDatabase)
+	}
+
 	CompanyOnly := router.Group("/public/company")
 	CompanyOnly.Use()
 	{
