@@ -73,6 +73,58 @@ func CreateCompanyBranchTable(db *pg.DB) error {
 	return nil
 }
 
+func CreateTagTable(db *pg.DB) error {
+	opts := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	createError := db.CreateTable(&models.Tag{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("Created TAG Table ")
+	return nil
+}
+
+func CreateApptypeTable(db *pg.DB) error {
+	opts := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	createError := db.CreateTable(&models.Apptype{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("Created APPTYPE Table ")
+	return nil
+}
+
+func CreateLibraryTable(db *pg.DB) error {
+	opts := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	createError := db.CreateTable(&models.Library{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("Created LIBRARY Table ")
+	return nil
+}
+
+func CreateOtherTable(db *pg.DB) error {
+	opts := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	createError := db.CreateTable(&models.Other{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("Created OTHER Table ")
+	return nil
+}
+
 func RemoveBlogTable(db *pg.DB) error {
 	opts := &orm.DropTableOptions{
 		IfExists: true,
@@ -140,6 +192,62 @@ func RemoveCompanyBranchTable(db *pg.DB) error {
 		return createError
 	}
 	log.Printf("removed Company Branch Table from Database ")
+	return nil
+}
+
+func RemoveApptypeTable(db *pg.DB) error {
+	opts := &orm.DropTableOptions{
+		IfExists: true,
+		Cascade:  true,
+	}
+	createError := db.DropTable(&models.Apptype{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("removed Apptype Table from Database ")
+	return nil
+}
+
+func RemoveLibraryTable(db *pg.DB) error {
+	opts := &orm.DropTableOptions{
+		IfExists: true,
+		Cascade:  true,
+	}
+	createError := db.DropTable(&models.Library{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("removed Library Table from Database ")
+	return nil
+}
+
+func RemoveOtherTable(db *pg.DB) error {
+	opts := &orm.DropTableOptions{
+		IfExists: true,
+		Cascade:  true,
+	}
+	createError := db.DropTable(&models.Other{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("removed Other Table from Database ")
+	return nil
+}
+
+func RemoveTagTable(db *pg.DB) error {
+	opts := &orm.DropTableOptions{
+		IfExists: true,
+		Cascade:  true,
+	}
+	createError := db.DropTable(&models.Tag{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("removed Tag Table from Database ")
 	return nil
 }
 

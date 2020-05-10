@@ -48,6 +48,46 @@ func ExtRouter(mode string) *gin.Engine {
 		authedProfileOnly.PUT("/update", controllers.UpdateProfile)
 	}
 
+	authedApptypeOnly := router.Group("/protected/apptype")
+	authedApptypeOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedApptypeOnly.GET("/list", controllers.GetApptypeList)
+		authedApptypeOnly.GET("/byid", controllers.GetApptype)
+		authedApptypeOnly.POST("/new", controllers.CreateApptype)
+		authedApptypeOnly.PUT("/update", controllers.UpdateApptype)
+		authedApptypeOnly.DELETE("/remove", controllers.DeleteApptype)
+	}
+
+	authedLibraryOnly := router.Group("/protected/library")
+	authedLibraryOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedLibraryOnly.GET("/list", controllers.GetLibraryList)
+		authedLibraryOnly.GET("/byid", controllers.GetLibrary)
+		authedLibraryOnly.POST("/new", controllers.CreateLibrary)
+		authedLibraryOnly.PUT("/update", controllers.UpdateLibrary)
+		authedLibraryOnly.DELETE("/remove", controllers.DeleteLibrary)
+	}
+
+	authedOtherOnly := router.Group("/protected/other")
+	authedOtherOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedOtherOnly.GET("/list", controllers.GetOtherList)
+		authedOtherOnly.GET("/byid", controllers.GetOther)
+		authedOtherOnly.POST("/new", controllers.CreateOther)
+		authedOtherOnly.PUT("/update", controllers.UpdateOther)
+		authedOtherOnly.DELETE("/remove", controllers.DeleteOther)
+	}
+
+	authedTagOnly := router.Group("/protected/tag")
+	authedTagOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedTagOnly.GET("/list", controllers.GetTagList)
+		authedTagOnly.GET("/byid", controllers.GetTag)
+		authedTagOnly.POST("/new", controllers.CreateTag)
+		authedTagOnly.PUT("/update", controllers.UpdateTag)
+		authedTagOnly.DELETE("/remove", controllers.DeleteTag)
+	}
+
 	CompanyOnly := router.Group("/public/company")
 	CompanyOnly.Use()
 	{
