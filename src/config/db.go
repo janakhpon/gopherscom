@@ -26,6 +26,7 @@ func Connect() *pg.DB {
 	}
 
 	log.Printf("Connected to db")
+
 	controllers.RemoveBlogTable(db)
 	controllers.RemoveProfileTable(db)
 	controllers.RemoveUserTable(db)
@@ -35,6 +36,10 @@ func Connect() *pg.DB {
 	controllers.RemoveOtherTable(db)
 	controllers.RemoveLibraryTable(db)
 	controllers.RemoveApptypeTable(db)
+	controllers.RemoveLanguageTable(db)
+	controllers.RemoveFrameworkTable(db)
+	controllers.RemovePlatformTable(db)
+
 	controllers.CreateBlogTable(db)
 	controllers.CreateProfileTable(db)
 	controllers.CreateUserTable(db)
@@ -44,6 +49,10 @@ func Connect() *pg.DB {
 	controllers.CreateLibraryTable(db)
 	controllers.CreateOtherTable(db)
 	controllers.CreateTagTable(db)
+	controllers.CreateLanguageTable(db)
+	controllers.CreateFrameworkTable(db)
+	controllers.CreatePlatformTable(db)
+
 	controllers.InitiateDB(db)
 
 	return db
