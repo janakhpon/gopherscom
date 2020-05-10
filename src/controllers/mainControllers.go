@@ -47,6 +47,32 @@ func CreateUserTable(db *pg.DB) error {
 	return nil
 }
 
+func CreateCompanyTable(db *pg.DB) error {
+	opts := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	createError := db.CreateTable(&models.Company{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("Created COMPANY Table ")
+	return nil
+}
+
+func CreateCompanyBranchTable(db *pg.DB) error {
+	opts := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	createError := db.CreateTable(&models.Branch{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("Created COMPANY BRANCH Table ")
+	return nil
+}
+
 func RemoveBlogTable(db *pg.DB) error {
 	opts := &orm.DropTableOptions{
 		IfExists: true,
@@ -86,6 +112,34 @@ func RemoveUserTable(db *pg.DB) error {
 		return createError
 	}
 	log.Printf("removed User Table from Database ")
+	return nil
+}
+
+func RemoveCompanyTable(db *pg.DB) error {
+	opts := &orm.DropTableOptions{
+		IfExists: true,
+		Cascade:  true,
+	}
+	createError := db.DropTable(&models.Company{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("removed Company Table from Database ")
+	return nil
+}
+
+func RemoveCompanyBranchTable(db *pg.DB) error {
+	opts := &orm.DropTableOptions{
+		IfExists: true,
+		Cascade:  true,
+	}
+	createError := db.DropTable(&models.Branch{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("removed Company Branch Table from Database ")
 	return nil
 }
 

@@ -26,13 +26,16 @@ func Connect() *pg.DB {
 	}
 
 	log.Printf("Connected to db")
-
 	// controllers.RemoveBlogTable(db)
 	// controllers.RemoveProfileTable(db)
 	// controllers.RemoveUserTable(db)
+	// controllers.RemoveCompanyTable(db)
+	// controllers.RemoveCompanyBranchTable(db)
 	controllers.CreateBlogTable(db)
 	controllers.CreateProfileTable(db)
 	controllers.CreateUserTable(db)
+	controllers.CreateCompanyTable(db)
+	controllers.CreateCompanyBranchTable(db)
 	controllers.InitiateDB(db)
 
 	return db

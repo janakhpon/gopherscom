@@ -48,5 +48,22 @@ func ExtRouter(mode string) *gin.Engine {
 		authedProfileOnly.PUT("/update", controllers.UpdateProfile)
 	}
 
+	CompanyOnly := router.Group("/public/company")
+	CompanyOnly.Use()
+	{
+		CompanyOnly.GET("/list", controllers.GetCompanyList)
+		CompanyOnly.POST("/new", controllers.AddCompany)
+	}
+
+	BranchOnly := router.Group("/public/branch")
+	BranchOnly.Use()
+	{
+		BranchOnly.POST("/new", controllers.AddCompanyBranch)
+		BranchOnly.GET("/branches", controllers.GetCompanyBranches)
+		BranchOnly.PUT("/update", controllers.UpdateCompanyBranch)
+		BranchOnly.DELETE("/delete", controllers.DeleteCompanyBranch)
+
+	}
+
 	return router
 }

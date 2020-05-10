@@ -33,11 +33,13 @@ func CreateProfile(c *gin.Context) {
 
 	profile := models.Profile{
 		ID:         uuid.New().String(),
-		USER:       c.Request.URL.Query().Get("user"),
+		USERID:     c.Request.URL.Query().Get("userid"),
 		CAREER:     profileBody.CAREER,
-		LANGUAGES:  profileBody.LANGUAGES,
 		FRAMEWORKS: profileBody.FRAMEWORKS,
+		LANGUAGES:  profileBody.LANGUAGES,
+		PLATFORMS:  profileBody.PLATFORMS,
 		DATABASES:  profileBody.DATABASES,
+		OTHERS:     profileBody.OTHERS,
 		SEX:        profileBody.SEX,
 		BIRTHDATE:  profileBody.BIRTHDATE,
 		ADDRESS:    profileBody.ADDRESS,
@@ -45,6 +47,8 @@ func CreateProfile(c *gin.Context) {
 		CITY:       profileBody.CITY,
 		STATE:      profileBody.STATE,
 		COUNTRY:    profileBody.COUNTRY,
+		LAT:        profileBody.LAT,
+		LON:        profileBody.LON,
 		CREATEDAT:  time.Now(),
 		UPDATEDAT:  time.Now(),
 	}
@@ -68,7 +72,7 @@ func UpdateProfile(c *gin.Context) {
 	userid := c.Request.URL.Query().Get("userid")
 	var profileBody models.Profile
 	c.BindJSON(&profileBody)
-	resprofile := &models.Profile{USER: userid}
+	resprofile := &models.Profile{USERID: userid}
 
 	err := dbConnect.Select(resprofile)
 
@@ -82,11 +86,13 @@ func UpdateProfile(c *gin.Context) {
 
 	profile := models.Profile{
 		ID:         resprofile.ID,
-		USER:       userid,
+		USERID:     userid,
 		CAREER:     profileBody.CAREER,
-		LANGUAGES:  profileBody.LANGUAGES,
 		FRAMEWORKS: profileBody.FRAMEWORKS,
+		LANGUAGES:  profileBody.LANGUAGES,
+		PLATFORMS:  profileBody.PLATFORMS,
 		DATABASES:  profileBody.DATABASES,
+		OTHERS:     profileBody.OTHERS,
 		SEX:        profileBody.SEX,
 		BIRTHDATE:  profileBody.BIRTHDATE,
 		ADDRESS:    profileBody.ADDRESS,
@@ -94,6 +100,8 @@ func UpdateProfile(c *gin.Context) {
 		CITY:       profileBody.CITY,
 		STATE:      profileBody.STATE,
 		COUNTRY:    profileBody.COUNTRY,
+		LAT:        profileBody.LAT,
+		LON:        profileBody.LON,
 		CREATEDAT:  resprofile.CREATEDAT,
 		UPDATEDAT:  time.Now(),
 	}
@@ -115,7 +123,7 @@ func UpdateProfile(c *gin.Context) {
 
 func GetByID(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
-	profile := models.Profile{USER: id}
+	profile := models.Profile{USERID: id}
 	err := dbConnect.Select(&profile)
 
 	if err != nil {
@@ -134,7 +142,7 @@ func GetByID(c *gin.Context) {
 
 func GetProfileByUser(c *gin.Context) {
 	userid := c.Request.URL.Query().Get("userid")
-	resprofile := &models.Profile{USER: userid}
+	resprofile := &models.Profile{USERID: userid}
 
 	err := dbConnect.Select(resprofile)
 
