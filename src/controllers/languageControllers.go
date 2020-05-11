@@ -53,7 +53,7 @@ func CreateLanguage(c *gin.Context) {
 		ID:          uuid.New().String(),
 		NAME:        languageBody.NAME,
 		DESCRIPTION: languageBody.DESCRIPTION,
-		AUTHOR:      languageBody.AUTHOR,
+		AUTHOR:      c.Request.URL.Query().Get("authorid"),
 		CREATEDAT:   time.Now(),
 		UPDATEDAT:   time.Now(),
 	}
@@ -92,7 +92,7 @@ func UpdateLanguage(c *gin.Context) {
 		ID:          id,
 		NAME:        languageBody.NAME,
 		DESCRIPTION: languageBody.DESCRIPTION,
-		AUTHOR:      languageBody.AUTHOR,
+		AUTHOR:      relanguage.AUTHOR,
 		CREATEDAT:   relanguage.CREATEDAT,
 		UPDATEDAT:   time.Now(),
 	}

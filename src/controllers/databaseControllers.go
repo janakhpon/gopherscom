@@ -53,7 +53,7 @@ func CreateDatabase(c *gin.Context) {
 		ID:          uuid.New().String(),
 		NAME:        databaseBody.NAME,
 		DESCRIPTION: databaseBody.DESCRIPTION,
-		AUTHOR:      databaseBody.AUTHOR,
+		AUTHOR:      c.Request.URL.Query().Get("authorid"),
 		CREATEDAT:   time.Now(),
 		UPDATEDAT:   time.Now(),
 	}
@@ -92,7 +92,7 @@ func UpdateDatabase(c *gin.Context) {
 		ID:          id,
 		NAME:        databaseBody.NAME,
 		DESCRIPTION: databaseBody.DESCRIPTION,
-		AUTHOR:      databaseBody.AUTHOR,
+		AUTHOR:      redatabase.AUTHOR,
 		CREATEDAT:   redatabase.CREATEDAT,
 		UPDATEDAT:   time.Now(),
 	}

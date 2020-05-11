@@ -53,7 +53,7 @@ func CreateTag(c *gin.Context) {
 		ID:          uuid.New().String(),
 		NAME:        tagBody.NAME,
 		DESCRIPTION: tagBody.DESCRIPTION,
-		AUTHOR:      tagBody.AUTHOR,
+		AUTHOR:      c.Request.URL.Query().Get("authorid"),
 		CREATEDAT:   time.Now(),
 		UPDATEDAT:   time.Now(),
 	}
@@ -92,7 +92,7 @@ func UpdateTag(c *gin.Context) {
 		ID:          id,
 		NAME:        tagBody.NAME,
 		DESCRIPTION: tagBody.DESCRIPTION,
-		AUTHOR:      tagBody.AUTHOR,
+		AUTHOR:      retag.AUTHOR,
 		CREATEDAT:   retag.CREATEDAT,
 		UPDATEDAT:   time.Now(),
 	}

@@ -118,6 +118,20 @@ func ExtRouter(mode string) *gin.Engine {
 		authedDatabaseOnly.DELETE("/remove", controllers.DeleteDatabase)
 	}
 
+	authedBootcampOnly := router.Group("/protected/bootcamp")
+	authedBootcampOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedBootcampOnly.POST("/new", controllers.CreateBootcamp)
+		authedBootcampOnly.GET("/list", controllers.GetBootcampList)
+		authedBootcampOnly.GET("/byid", controllers.GetBootcamp)
+		authedBootcampOnly.PUT("/update", controllers.UpdateBootcamp)
+		authedBootcampOnly.PUT("/public", controllers.SetBootcampAvailability)
+		authedBootcampOnly.DELETE("/remove", controllers.DeleteBootcamp)
+		authedBootcampOnly.PUT("/enroll", controllers.EnrollBootcamp)
+		authedBootcampOnly.PUT("/like", controllers.LikeBootcamp)
+		authedBootcampOnly.PUT("/comment", controllers.CommentBootcamp)
+	}
+
 	CompanyOnly := router.Group("/public/company")
 	CompanyOnly.Use()
 	{

@@ -53,7 +53,7 @@ func CreatePlatform(c *gin.Context) {
 		ID:          uuid.New().String(),
 		NAME:        platformBody.NAME,
 		DESCRIPTION: platformBody.DESCRIPTION,
-		AUTHOR:      platformBody.AUTHOR,
+		AUTHOR:      c.Request.URL.Query().Get("authorid"),
 		CREATEDAT:   time.Now(),
 		UPDATEDAT:   time.Now(),
 	}
@@ -92,7 +92,7 @@ func UpdatePlatform(c *gin.Context) {
 		ID:          id,
 		NAME:        platformBody.NAME,
 		DESCRIPTION: platformBody.DESCRIPTION,
-		AUTHOR:      platformBody.AUTHOR,
+		AUTHOR:      replatform.AUTHOR,
 		CREATEDAT:   replatform.CREATEDAT,
 		UPDATEDAT:   time.Now(),
 	}
