@@ -54,7 +54,7 @@ func CreateLibrary(c *gin.Context) {
 		NAME:        libraryBody.NAME,
 		DESCRIPTION: libraryBody.DESCRIPTION,
 		LANGUAGES:   libraryBody.LANGUAGES,
-		AUTHOR:      libraryBody.AUTHOR,
+		AUTHOR:      c.Request.URL.Query().Get("authorid"),
 		CREATEDAT:   time.Now(),
 		UPDATEDAT:   time.Now(),
 	}
@@ -94,7 +94,7 @@ func UpdateLibrary(c *gin.Context) {
 		NAME:        libraryBody.NAME,
 		DESCRIPTION: libraryBody.DESCRIPTION,
 		LANGUAGES:   libraryBody.LANGUAGES,
-		AUTHOR:      libraryBody.AUTHOR,
+		AUTHOR:      relibrary.AUTHOR,
 		CREATEDAT:   relibrary.CREATEDAT,
 		UPDATEDAT:   time.Now(),
 	}

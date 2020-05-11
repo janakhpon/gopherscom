@@ -14,6 +14,8 @@ type Blog struct {
 	TAGS      []string  `json:"tags"`
 	LIBRARIES []string  `json:"libraries"`
 	AUTHOR    string    `json:"author"`
+	LIKES     []Like    `json:"likes"`
+	COMMENTS  []Comment `json:"comments"`
 	CREATEDAT time.Time `json:"created_at"`
 	UPDATEDAT time.Time `json:"updated_at"`
 }

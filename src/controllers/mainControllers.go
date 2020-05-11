@@ -164,6 +164,19 @@ func CreatePlatformTable(db *pg.DB) error {
 	return nil
 }
 
+func CreateBootcampTable(db *pg.DB) error {
+	opts := &orm.CreateTableOptions{
+		IfNotExists: true,
+	}
+	createError := db.CreateTable(&models.Bootcamp{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("Created BOOTCAMP Table ")
+	return nil
+}
+
 func RemoveBlogTable(db *pg.DB) error {
 	opts := &orm.DropTableOptions{
 		IfExists: true,
@@ -329,6 +342,20 @@ func RemovePlatformTable(db *pg.DB) error {
 		return createError
 	}
 	log.Printf("removed Platofrm Table from Database ")
+	return nil
+}
+
+func RemoveBootcampTable(db *pg.DB) error {
+	opts := &orm.DropTableOptions{
+		IfExists: true,
+		Cascade:  true,
+	}
+	createError := db.DropTable(&models.Bootcamp{}, opts)
+	if createError != nil {
+		log.Printf("Error %v\n", createError)
+		return createError
+	}
+	log.Printf("removed Bootcamp Table from Database ")
 	return nil
 }
 

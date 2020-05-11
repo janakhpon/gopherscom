@@ -53,7 +53,7 @@ func CreateFramework(c *gin.Context) {
 		ID:          uuid.New().String(),
 		NAME:        frameworkBody.NAME,
 		DESCRIPTION: frameworkBody.DESCRIPTION,
-		AUTHOR:      frameworkBody.AUTHOR,
+		AUTHOR:      c.Request.URL.Query().Get("authorid"),
 		CREATEDAT:   time.Now(),
 		UPDATEDAT:   time.Now(),
 	}
@@ -92,7 +92,7 @@ func UpdateFramework(c *gin.Context) {
 		ID:          id,
 		NAME:        frameworkBody.NAME,
 		DESCRIPTION: frameworkBody.DESCRIPTION,
-		AUTHOR:      frameworkBody.AUTHOR,
+		AUTHOR:      reframework.AUTHOR,
 		CREATEDAT:   reframework.CREATEDAT,
 		UPDATEDAT:   time.Now(),
 	}

@@ -53,7 +53,7 @@ func CreateApptype(c *gin.Context) {
 		ID:          uuid.New().String(),
 		NAME:        apptypeBody.NAME,
 		DESCRIPTION: apptypeBody.DESCRIPTION,
-		AUTHOR:      apptypeBody.AUTHOR,
+		AUTHOR:      c.Request.URL.Query().Get("authorid"),
 		CREATEDAT:   time.Now(),
 		UPDATEDAT:   time.Now(),
 	}
@@ -92,7 +92,7 @@ func UpdateApptype(c *gin.Context) {
 		ID:          id,
 		NAME:        apptypeBody.NAME,
 		DESCRIPTION: apptypeBody.DESCRIPTION,
-		AUTHOR:      apptypeBody.AUTHOR,
+		AUTHOR:      reapptype.AUTHOR,
 		CREATEDAT:   reapptype.CREATEDAT,
 		UPDATEDAT:   time.Now(),
 	}

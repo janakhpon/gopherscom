@@ -53,7 +53,7 @@ func CreateOther(c *gin.Context) {
 		ID:          uuid.New().String(),
 		NAME:        otherBody.NAME,
 		DESCRIPTION: otherBody.DESCRIPTION,
-		AUTHOR:      otherBody.AUTHOR,
+		AUTHOR:      c.Request.URL.Query().Get("authorid"),
 		CREATEDAT:   time.Now(),
 		UPDATEDAT:   time.Now(),
 	}
@@ -92,7 +92,7 @@ func UpdateOther(c *gin.Context) {
 		ID:          id,
 		NAME:        otherBody.NAME,
 		DESCRIPTION: otherBody.DESCRIPTION,
-		AUTHOR:      otherBody.AUTHOR,
+		AUTHOR:      reother.AUTHOR,
 		CREATEDAT:   reother.CREATEDAT,
 		UPDATEDAT:   time.Now(),
 	}
