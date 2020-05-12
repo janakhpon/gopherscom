@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -163,6 +164,144 @@ func DeleteBlog(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Deleted!",
+	})
+	return
+}
+
+func LikeBlog(c *gin.Context) {
+	id := c.Request.URL.Query().Get("id")
+	userid := c.Request.URL.Query().Get("userid")
+	fmt.Println(userid)
+	var blogBody models.Blog
+	c.BindJSON(&blogBody)
+
+	resblog := &models.Blog{ID: id}
+	err := dbConnect.Select(resblog)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  500,
+			"message": "blog not found!",
+		})
+		return
+	}
+
+	user := &models.User{ID: userid}
+	err = dbConnect.Select(user)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "User not found!",
+		})
+		return
+	}
+
+	likers := resblog.LIKES
+	if likers != nil {
+		for i, x := range likers {
+			if x.ID == userid && x.LIKE == true {
+				likers = RemoveLikeByIndex(likers, i)
+				liker := models.Like{
+					ID:   userid,
+					NAME: user.NAME,
+					LIKE: false,
+				}
+				likers = append(likers, liker)
+			} else if x.ID == userid && x.LIKE == false {
+				likers = RemoveLikeByIndex(likers, i)
+				liker := models.Like{
+					ID:   userid,
+					NAME: user.NAME,
+					LIKE: true,
+				}
+				likers = append(likers, liker)
+			} else {
+				liker := models.Like{
+					ID:   userid,
+					NAME: user.NAME,
+					LIKE: true,
+				}
+				likers = append(likers, liker)
+			}
+		}
+	} else {
+		liker := models.Like{
+			ID:   userid,
+			NAME: user.NAME,
+			LIKE: true,
+		}
+		likers = append(likers, liker)
+	}
+
+	blog := models.Blog{}
+	_, err = dbConnect.Model(&blog).Set("likes = ?", likers).Where("id = ?", id).Update()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  500,
+			"message": "Something went wrong",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  200,
+		"message": "You Liked this blog post!",
+	})
+	return
+}
+
+func CommentBLog(c *gin.Context) {
+	id := c.Request.URL.Query().Get("id")
+	userid := c.Request.URL.Query().Get("userid")
+	fmt.Println(userid)
+	var commentBody models.Comment
+	c.BindJSON(&commentBody)
+
+	resblog := &models.Blog{ID: id}
+	err := dbConnect.Select(resblog)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  500,
+			"message": "blog not found!",
+		})
+		return
+	}
+
+	user := &models.User{ID: userid}
+	err = dbConnect.Select(user)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "User not found!",
+		})
+		return
+	}
+
+	commenters := resblog.COMMENTS
+	commenter := models.Comment{
+		ID:        userid,
+		NAME:      user.NAME,
+		TEXT:      commentBody.TEXT,
+		EDITED:    false,
+		UPDATEDAT: time.Now(),
+	}
+
+	commenters = append(commenters, commenter)
+
+	blog := models.Blog{}
+	_, err = dbConnect.Model(&blog).Set("comments = ?", commenters).Where("id = ?", id).Update()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  500,
+			"message": "Something went wrong",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  200,
+		"message": "Commented to blog post!",
 	})
 	return
 }
