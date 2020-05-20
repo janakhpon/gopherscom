@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/go-pg/pg/v9"
+	"github.com/go-redis/redis"
 	"github.com/janakhpon/gopherscom/src/controllers"
 	"github.com/joho/godotenv"
 )
@@ -58,4 +59,18 @@ func Connect() *pg.DB {
 	controllers.InitiateDB(db)
 
 	return db
+}
+
+func ConnectRedis() *redis.Client {
+	godotenv.Load()
+
+	client := redis.NewClient(&redis.Options{
+		Addr:     os.Getenv("REDIS_HOST"),
+		Password: os.Getenv("REDIS_PASSWORD"),
+		DB:       0,
+	})
+
+	controllers.InitiateRedis(client)
+
+	return client
 }
