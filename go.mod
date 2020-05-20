@@ -9,8 +9,10 @@ require (
 	github.com/go-pg/pg/v9 v9.1.6
 	github.com/go-redis/redis v6.15.7+incompatible
 	github.com/go-redis/redis/v7 v7.2.0
+	github.com/gomodule/redigo v1.8.1
 	github.com/google/uuid v1.1.1
 	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.5.1 // indirect
+	github.com/nitishm/go-rejson v2.0.0+incompatible
 	golang.org/x/crypto v0.0.0-20200221231518-2aa609cf4a9d
 )
