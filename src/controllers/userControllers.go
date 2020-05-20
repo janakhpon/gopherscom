@@ -15,6 +15,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const (
+	DefaultTimeout = 86400 * time.Second
+)
+
 func GetUserList(c *gin.Context) {
 	var userList []models.User
 	err := dbConnect.Model(&userList).Select()
@@ -198,6 +202,18 @@ func UserSignin(c *gin.Context) {
 			"msg": err,
 		})
 		return
+	}
+	// errAccess := config.RedisClient.Set(user.ID, user.NAME, DefaultTimeout).Err()
+	// if errAccess != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{
+	// 		"msg": "stored username in redis",
+	// 	})
+	// 	return
+	// }
+
+	err = rdbClient.Set("noname", "Htet Yin Min", 0).Err()
+	if err != nil {
+		panic(err)
 	}
 	jwt.Token = token
 	c.JSON(http.StatusAccepted, gin.H{

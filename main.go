@@ -11,6 +11,7 @@ import (
 
 func main() {
 	config.Connect()
+	config.ConnectRedis()
 	godotenv.Load()
 	port := os.Getenv("PORT")
 	mode := os.Getenv("MODE")

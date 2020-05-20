@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-pg/pg/v9"
 	"github.com/go-pg/pg/v9/orm"
+	"github.com/go-redis/redis"
 	"github.com/janakhpon/gopherscom/src/models"
 )
 
@@ -363,4 +364,10 @@ var dbConnect *pg.DB
 
 func InitiateDB(db *pg.DB) {
 	dbConnect = db
+}
+
+var rdbClient *redis.Client
+
+func InitiateRedis(client *redis.Client) {
+	rdbClient = client
 }
