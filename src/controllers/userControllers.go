@@ -7,11 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"encoding/json"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/janakhpon/gopherscom/src/models"
 	"github.com/janakhpon/gopherscom/src/utils"
+	"github.com/nitishm/go-rejson"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -215,6 +218,54 @@ func UserSignin(c *gin.Context) {
 	if err != nil {
 		panic(err)
 	}
+	rh := rejson.NewReJSONHandler()
+	rh.SetGoRedisClient(rdbClient)
+
+	redisuser := models.User{
+		ID:        resuser.ID,
+		NAME:      resuser.NAME,
+		EMAIL:     resuser.EMAIL,
+		PASSWORD:  resuser.PASSWORD,
+		CREATEDAT: resuser.CREATEDAT,
+		UPDATEDAT: resuser.UPDATEDAT,
+	}
+
+	redisval, err := json.Marshal(redisuser)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = rdbClient.Set("id1234", redisval, 0).Err()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	val, err := rdbClient.Get("id1234").Result()
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = json.Unmarshal([]byte(val), &redisuser)
+	fmt.Printf("%+v\n", redisuser)
+
+	fmt.Println(redisuser.EMAIL)
+
+	fmt.Println(val)
+
+	// userJSON, err := redis.Bytes(rh.JSONGet("user", "."))
+	// if err != nil {
+	// 	log.Fatalf("Failed to JSONGet")
+	// 	return
+	// }
+
+	// readuser := models.User{}
+	// err = json.Unmarshal(userJSON, &readuser)
+	// if err != nil {
+	// 	log.Fatalf("Failed to JSON Unmarshal")
+	// 	return
+	// }
+
+	// fmt.Printf("user read from redis : %#v\n", readuser)
+
 	jwt.Token = token
 	c.JSON(http.StatusAccepted, gin.H{
 		"token":        token,
