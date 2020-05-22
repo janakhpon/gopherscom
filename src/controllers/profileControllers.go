@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -60,6 +61,21 @@ func CreateProfile(c *gin.Context) {
 		})
 		return
 	}
+	redisprofile, err := json.Marshal(profile)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": insertError,
+		})
+		return
+	}
+
+	err = rdbClient.Set("profileinfo", redisprofile, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": insertError,
+		})
+		return
+	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "created",
 		"data":    &profile,
@@ -72,9 +88,9 @@ func UpdateProfile(c *gin.Context) {
 	userid := c.Request.URL.Query().Get("userid")
 	var profileBody models.Profile
 	c.BindJSON(&profileBody)
-	resprofile := &models.Profile{USERID: userid}
+	resprofile := &models.Profile{}
 
-	err := dbConnect.Select(resprofile)
+	err := dbConnect.Model(resprofile).Where("userid = ?", userid).Select()
 
 	fmt.Println(err)
 	if err != nil {
@@ -105,15 +121,40 @@ func UpdateProfile(c *gin.Context) {
 		CREATEDAT:  resprofile.CREATEDAT,
 		UPDATEDAT:  time.Now(),
 	}
-
-	updateError := dbConnect.Update(&profile)
-
-	if updateError != nil {
+	_, err = dbConnect.Model(&profile).Where("userid = ?", userid).Update()
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": updateError,
+			"status":  500,
+			"message": "Something went wrong",
 		})
 		return
 	}
+
+	// updateError := dbConnect.Update(&profile)
+
+	// if updateError != nil {
+	// 	c.JSON(http.StatusInternalServerError, gin.H{
+	// 		"message": updateError,
+	// 	})
+	// 	return
+	// }
+
+	redisprofile, err := json.Marshal(profile)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set("profileinfo", redisprofile, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "updated",
 		"data":    &profile,
@@ -123,7 +164,7 @@ func UpdateProfile(c *gin.Context) {
 
 func GetByID(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
-	profile := models.Profile{USERID: id}
+	profile := models.Profile{ID: id}
 	err := dbConnect.Select(&profile)
 
 	if err != nil {
