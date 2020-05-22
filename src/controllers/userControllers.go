@@ -14,7 +14,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/janakhpon/gopherscom/src/models"
 	"github.com/janakhpon/gopherscom/src/utils"
-	"github.com/nitishm/go-rejson"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -214,12 +213,19 @@ func UserSignin(c *gin.Context) {
 	// 	return
 	// }
 
-	err = rdbClient.Set("noname", "Htet Yin Min", 0).Err()
-	if err != nil {
-		panic(err)
-	}
-	rh := rejson.NewReJSONHandler()
-	rh.SetGoRedisClient(rdbClient)
+	// resprofile := &models.Profile{USERID: resuser.ID}
+
+	// err = dbConnect.Select(resprofile)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// err = rdbClient.Set("noname", "Htet Yin Min", 0).Err()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// rh := rejson.NewReJSONHandler()
+	// rh.SetGoRedisClient(rdbClient)
 
 	redisuser := models.User{
 		ID:        resuser.ID,
@@ -230,26 +236,58 @@ func UserSignin(c *gin.Context) {
 		UPDATEDAT: resuser.UPDATEDAT,
 	}
 
-	redisval, err := json.Marshal(redisuser)
+	// redisprofile := models.Profile{
+	// 	ID:         resprofile.ID,
+	// 	USERID:     resprofile.USERID,
+	// 	CAREER:     resprofile.CAREER,
+	// 	FRAMEWORKS: resprofile.FRAMEWORKS,
+	// 	LANGUAGES:  resprofile.LANGUAGES,
+	// 	PLATFORMS:  resprofile.PLATFORMS,
+	// 	DATABASES:  resprofile.DATABASES,
+	// 	OTHERS:     resprofile.OTHERS,
+	// 	SEX:        resprofile.SEX,
+	// 	BIRTHDATE:  resprofile.BIRTHDATE,
+	// 	ADDRESS:    resprofile.ADDRESS,
+	// 	ZIPCODE:    resprofile.ADDRESS,
+	// 	CITY:       resprofile.CITY,
+	// 	STATE:      resprofile.STATE,
+	// 	COUNTRY:    resprofile.COUNTRY,
+	// 	LAT:        resprofile.LAT,
+	// 	LON:        resprofile.LON,
+	// 	CREATEDAT:  resprofile.CREATEDAT,
+	// 	UPDATEDAT:  resprofile.UPDATEDAT,
+	// }
+
+	redisuserval, err := json.Marshal(redisuser)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	err = rdbClient.Set("id1234", redisval, 0).Err()
+	// redisprofileval, err := json.Marshal(redisprofile)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+
+	err = rdbClient.Set("userinfo", redisuserval, 0).Err()
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	val, err := rdbClient.Get("id1234").Result()
-	if err != nil {
-		fmt.Println(err)
-	}
-	err = json.Unmarshal([]byte(val), &redisuser)
-	fmt.Printf("%+v\n", redisuser)
+	// err = rdbClient.Set("profileinfo", redisprofileval, 0).Err()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
-	fmt.Println(redisuser.EMAIL)
+	// val, err := rdbClient.Get("id1234").Result()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// err = json.Unmarshal([]byte(val), &redisuser)
+	// fmt.Printf("%+v\n", redisuser)
 
-	fmt.Println(val)
+	// fmt.Println(redisuser.EMAIL)
+
+	// fmt.Println(val)
 
 	// userJSON, err := redis.Bytes(rh.JSONGet("user", "."))
 	// if err != nil {

@@ -12,13 +12,19 @@ func ExtRouter(mode string) *gin.Engine {
 
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{
-			"message": "HELLO FROM GOPHERS COMMUNITY !!!",
+			"message": "Hello from Gopher Community!",
 		})
 	})
-
 	router.POST("/signup", controllers.UserSignup)
 	router.POST("/signin", controllers.UserSignin)
 	router.GET("/refreshToken", controllers.RefreshToken)
+
+	authedCacheOnly := router.Group("/protected/cache")
+	authedCacheOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedCacheOnly.GET("/userinfo", controllers.GetCachedUser)
+		authedCacheOnly.GET("/profileinfo", controllers.GetCachedProfile)
+	}
 
 	authedUserOnly := router.Group("/protected/user")
 	authedUserOnly.Use(controllers.TokenVerifyMiddleWare())
