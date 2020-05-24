@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -36,6 +37,23 @@ func AddCompanyBranch(c *gin.Context) {
 		})
 		return
 	}
+
+	cachebranch, err := json.Marshal(branch)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set(branch.ID, cachebranch, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "created",
 		"data":    &branch,
@@ -82,6 +100,23 @@ func UpdateCompanyBranch(c *gin.Context) {
 		})
 		return
 	}
+
+	cachebranch, err := json.Marshal(branch)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set(branch.ID, cachebranch, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "updated",
 		"data":    &branch,
@@ -92,7 +127,22 @@ func UpdateCompanyBranch(c *gin.Context) {
 func GetCompanyBranches(c *gin.Context) {
 	companyid := c.Request.URL.Query().Get("cid")
 	branches := &[]models.Branch{}
-	err := dbConnect.Model(branches).Where("cid = ?", companyid).Select()
+	val, err := rdbClient.Get(companyid).Result()
+	if err != nil {
+		c.JSON(http.StatusAccepted, gin.H{
+			"msg": "failed to get user from cache",
+		})
+		return
+	}
+	err = json.Unmarshal([]byte(val), &branches)
+	if branches != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"msg":  "succeed",
+			"data": branches,
+		})
+		return
+	}
+	err = dbConnect.Model(branches).Where("cid = ?", companyid).Select()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
@@ -121,7 +171,7 @@ func DeleteCompanyBranch(c *gin.Context) {
 		})
 		return
 	}
-
+	err = rdbClient.Del(id).Err()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Deleted!",
