@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -29,8 +30,26 @@ func GetPlatformList(c *gin.Context) {
 func GetPlatform(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	platform := &models.Platform{ID: id}
-	err := dbConnect.Select(platform)
+	val, err := rdbClient.Get(id).Result()
+	if err != nil {
 
+	}
+	err = json.Unmarshal([]byte(val), &platform)
+	if platform != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"msg":  "succeed",
+			"data": platform,
+		})
+		return
+	}
+	err = dbConnect.Select(platform)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "failed to fetch",
+		})
+		return
+	}
+	err = dbConnect.Select(platform)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
@@ -65,6 +84,20 @@ func CreatePlatform(c *gin.Context) {
 		})
 		return
 	}
+	cacheplatform, err := json.Marshal(platform)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+	err = rdbClient.Set(platform.ID, cacheplatform, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "created",
 		"data":    &platform,
@@ -87,7 +120,6 @@ func UpdatePlatform(c *gin.Context) {
 		})
 		return
 	}
-
 	platform := models.Platform{
 		ID:          id,
 		NAME:        platformBody.NAME,
@@ -101,6 +133,20 @@ func UpdatePlatform(c *gin.Context) {
 	if updateError != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": updateError,
+		})
+		return
+	}
+	cacheplatform, err := json.Marshal(platform)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+	err = rdbClient.Set(platform.ID, cacheplatform, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
 		})
 		return
 	}
@@ -125,7 +171,7 @@ func DeletePlatform(c *gin.Context) {
 		})
 		return
 	}
-
+	err = rdbClient.Del(id).Err()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Deleted!",

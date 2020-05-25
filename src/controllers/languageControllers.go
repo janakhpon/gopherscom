@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -29,8 +30,18 @@ func GetLanguageList(c *gin.Context) {
 func GetLanguage(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	language := &models.Language{ID: id}
-	err := dbConnect.Select(language)
-
+	val, err := rdbClient.Get(id).Result()
+	if err != nil {
+	}
+	err = json.Unmarshal([]byte(val), &language)
+	if language != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"msg":  "succeed",
+			"data": language,
+		})
+		return
+	}
+	err = dbConnect.Select(language)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
@@ -62,6 +73,21 @@ func CreateLanguage(c *gin.Context) {
 	if insertError != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": insertError,
+		})
+		return
+	}
+	cachelanguage, err := json.Marshal(language)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set(language.ID, cachelanguage, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
 		})
 		return
 	}
@@ -104,6 +130,22 @@ func UpdateLanguage(c *gin.Context) {
 		})
 		return
 	}
+	cachelanguage, err := json.Marshal(language)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set(language.ID, cachelanguage, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "updated",
 		"data":    &language,
@@ -125,7 +167,7 @@ func DeleteLanguage(c *gin.Context) {
 		})
 		return
 	}
-
+	err = rdbClient.Del(id).Err()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Deleted!",

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -29,8 +30,21 @@ func GetFrameworkList(c *gin.Context) {
 func GetFramework(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	framework := &models.Framework{ID: id}
-	err := dbConnect.Select(framework)
+	val, err := rdbClient.Get(id).Result()
+	if err != nil {
 
+	}
+
+	err = json.Unmarshal([]byte(val), &framework)
+	if framework != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"msg":  "succeed",
+			"data": framework,
+		})
+		return
+	}
+
+	err = dbConnect.Select(framework)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
@@ -65,11 +79,25 @@ func CreateFramework(c *gin.Context) {
 		})
 		return
 	}
+	cacheframework, err := json.Marshal(framework)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set(framework.ID, cacheframework, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "created",
 		"data":    &framework,
 	})
-
 	return
 }
 
@@ -104,6 +132,21 @@ func UpdateFramework(c *gin.Context) {
 		})
 		return
 	}
+	cacheframework, err := json.Marshal(framework)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set(framework.ID, cacheframework, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "updated",
 		"data":    &framework,
@@ -125,7 +168,7 @@ func DeleteFramework(c *gin.Context) {
 		})
 		return
 	}
-
+	err = rdbClient.Del(id).Err()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Deleted!",

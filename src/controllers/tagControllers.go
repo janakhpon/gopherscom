@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -29,15 +30,25 @@ func GetTagList(c *gin.Context) {
 func GetTag(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	tag := &models.Tag{ID: id}
-	err := dbConnect.Select(tag)
+	val, err := rdbClient.Get(id).Result()
+	if err != nil {
 
+	}
+	err = json.Unmarshal([]byte(val), &tag)
+	if tag != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"msg":  "succeed",
+			"data": tag,
+		})
+		return
+	}
+	err = dbConnect.Select(tag)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"msg":  "succeed",
 		"data": tag,
@@ -65,11 +76,24 @@ func CreateTag(c *gin.Context) {
 		})
 		return
 	}
+	cachetag, err := json.Marshal(tag)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+	err = rdbClient.Set(tag.ID, cachetag, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "created",
 		"data":    &tag,
 	})
-
 	return
 }
 
@@ -104,6 +128,20 @@ func UpdateTag(c *gin.Context) {
 		})
 		return
 	}
+	cachetag, err := json.Marshal(tag)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+	err = rdbClient.Set(tag.ID, cachetag, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "updated",
 		"data":    &tag,
@@ -125,7 +163,7 @@ func DeleteTag(c *gin.Context) {
 		})
 		return
 	}
-
+	err = rdbClient.Del(id).Err()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Deleted!",
