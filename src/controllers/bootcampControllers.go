@@ -43,7 +43,6 @@ func GetBootcamp(c *gin.Context) {
 	if err != nil {
 
 	}
-
 	err = json.Unmarshal([]byte(val), &bootcamp)
 	if bootcamp != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -491,7 +490,6 @@ func DeleteBootcamp(c *gin.Context) {
 		})
 		return
 	}
-
 	err = rdbClient.Del(id).Err()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,

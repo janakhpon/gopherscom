@@ -41,8 +41,19 @@ func GetUserList(c *gin.Context) {
 func GetUser(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	user := &models.User{ID: id}
-	err := dbConnect.Select(user)
+	val, err := rdbClient.Get(id).Result()
+	if err != nil {
 
+	}
+	err = json.Unmarshal([]byte(val), &user)
+	if user != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"msg":  "succeed",
+			"data": user,
+		})
+		return
+	}
+	err = dbConnect.Select(user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
@@ -169,7 +180,7 @@ func UserSignin(c *gin.Context) {
 	// 	return nil
 	// }
 
-	fmt.Println(resuser)
+	// fmt.Println(resuser)
 
 	if resuser.EMAIL == "" {
 		c.JSON(http.StatusInternalServerError, gin.H{

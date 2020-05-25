@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -59,10 +60,26 @@ func AddCompany(c *gin.Context) {
 		})
 		return
 	}
+
+	cachecompany, err := json.Marshal(company)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set(company.ID, cachecompany, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "created",
 		"data":    &company,
 	})
-
 	return
 }
