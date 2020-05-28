@@ -62,6 +62,8 @@ func ExtRouter(mode string) *gin.Engine {
 		authedApptypeOnly.POST("/new", controllers.CreateApptype)
 		authedApptypeOnly.PUT("/update", controllers.UpdateApptype)
 		authedApptypeOnly.DELETE("/remove", controllers.DeleteApptype)
+		authedApptypeOnly.POST("/sets", controllers.SetKeys)
+		authedApptypeOnly.GET("/gets", controllers.GetKeys)
 	}
 
 	authedLibraryOnly := router.Group("/protected/library")
