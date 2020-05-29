@@ -42,6 +42,7 @@ func ExtRouter(mode string) *gin.Engine {
 		authedBlogOnly.PUT("/update", controllers.UpdateBlog)
 		authedBlogOnly.PUT("/public", controllers.SetBlogPublic)
 		authedBlogOnly.DELETE("/remove", controllers.DeleteBlog)
+		authedBlogOnly.DELETE("/resetcache", controllers.ResetBlogCache)
 	}
 
 	authedProfileOnly := router.Group("/protected/profile")
@@ -64,6 +65,7 @@ func ExtRouter(mode string) *gin.Engine {
 		authedApptypeOnly.DELETE("/remove", controllers.DeleteApptype)
 		authedApptypeOnly.POST("/sets", controllers.SetKeys)
 		authedApptypeOnly.GET("/gets", controllers.GetKeys)
+		authedApptypeOnly.DELETE("/resetcache", controllers.ResetApptypeCache)
 	}
 
 	authedLibraryOnly := router.Group("/protected/library")

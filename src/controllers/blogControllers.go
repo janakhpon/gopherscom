@@ -13,6 +13,33 @@ import (
 
 func GetBlogList(c *gin.Context) {
 	var blogList []models.Blog
+	var blog models.Blog
+
+	keys := rdbClient.Keys("blog*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &blog)
+		if blog.AUTHOR != "" {
+			blogList = append(blogList, blog)
+		}
+	}
+
+	if len(blogList) != 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"data":   blogList,
+			"status": "from redis",
+		})
+		return
+	}
+
 	err := dbConnect.Model(&blogList).Select()
 
 	if err != nil {
@@ -22,6 +49,35 @@ func GetBlogList(c *gin.Context) {
 		return
 	}
 
+	for _, key := range blogList {
+		blog := models.Blog{
+			ID:        key.ID,
+			TITLE:     key.TITLE,
+			BODY:      key.BODY,
+			PUBLIC:    key.PUBLIC,
+			APPTYPE:   key.APPTYPE,
+			LANGUAGES: key.LANGUAGES,
+			TAGS:      key.TAGS,
+			LIBRARIES: key.LIBRARIES,
+			AUTHOR:    key.AUTHOR,
+			CREATEDAT: key.CREATEDAT,
+			UPDATEDAT: key.UPDATEDAT,
+		}
+		cacheblog, err := json.Marshal(blog)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
+		err = rdbClient.Set("blog"+blog.ID, cacheblog, 604800*time.Second).Err()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"data": blogList,
 	})
@@ -32,21 +88,22 @@ func GetBlog(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	blog := &models.Blog{ID: id}
 
-	val, err := rdbClient.Get(id).Result()
+	val, err := rdbClient.Get("blog" + id).Result()
 	if err != nil {
 		c.JSON(http.StatusAccepted, gin.H{
 			"msg": "failed to get user from cache",
 		})
-		return
+	} else {
+		err = json.Unmarshal([]byte(val), &blog)
+		if blog != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":  "succeed",
+				"data": blog,
+			})
+			return
+		}
 	}
-	err = json.Unmarshal([]byte(val), &blog)
-	if blog != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"msg":  "succeed",
-			"data": blog,
-		})
-		return
-	}
+
 	err = dbConnect.Select(blog)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -54,7 +111,20 @@ func GetBlog(c *gin.Context) {
 		})
 		return
 	}
-
+	cacheblog, err := json.Marshal(blog)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+	err = rdbClient.Set("blog"+blog.ID, cacheblog, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"msg":  "succeed",
 		"data": blog,
@@ -79,7 +149,6 @@ func CreateBlog(c *gin.Context) {
 		CREATEDAT: time.Now(),
 		UPDATEDAT: time.Now(),
 	}
-
 	insertError := dbConnect.Insert(&blog)
 	if insertError != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -87,7 +156,6 @@ func CreateBlog(c *gin.Context) {
 		})
 		return
 	}
-
 	cacheblog, err := json.Marshal(blog)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -95,20 +163,17 @@ func CreateBlog(c *gin.Context) {
 		})
 		return
 	}
-
-	err = rdbClient.Set(blog.ID, cacheblog, 604800*time.Second).Err()
+	err = rdbClient.Set("blog"+blog.ID, cacheblog, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
 		})
 		return
 	}
-
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "created",
 		"data":    &blog,
 	})
-
 	return
 }
 
@@ -117,16 +182,13 @@ func UpdateBlog(c *gin.Context) {
 	var blogBody models.Blog
 	c.BindJSON(&blogBody)
 	reblog := &models.Blog{ID: id}
-
 	err := dbConnect.Select(reblog)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
 		})
 		return
 	}
-
 	blog := models.Blog{
 		ID:        id,
 		TITLE:     blogBody.TITLE,
@@ -141,7 +203,6 @@ func UpdateBlog(c *gin.Context) {
 		UPDATEDAT: time.Now(),
 	}
 	updateError := dbConnect.Update(&blog)
-
 	if updateError != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": updateError,
@@ -155,15 +216,13 @@ func UpdateBlog(c *gin.Context) {
 		})
 		return
 	}
-
-	err = rdbClient.Set(blog.ID, cacheblog, 604800*time.Second).Err()
+	err = rdbClient.Set("blog"+blog.ID, cacheblog, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
 		})
 		return
 	}
-
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "updated",
 		"data":    &blog,
@@ -176,9 +235,7 @@ func SetBlogPublic(c *gin.Context) {
 	publicval := c.Request.URL.Query().Get("public")
 	var blogBody models.Blog
 	c.BindJSON(&blogBody)
-
 	blog := models.Blog{}
-
 	_, err := dbConnect.Model(&blog).Set("public = ?", publicval).Where("id = ?", id).Update()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -194,15 +251,13 @@ func SetBlogPublic(c *gin.Context) {
 		})
 		return
 	}
-
-	err = rdbClient.Set(blog.ID, cacheblog, 604800*time.Second).Err()
+	err = rdbClient.Set("blog"+blog.ID, cacheblog, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":  200,
 		"message": "Public Value Change",
@@ -216,7 +271,7 @@ func DeleteBlog(c *gin.Context) {
 	c.BindJSON(&blogBody)
 	blog := &models.Blog{ID: id}
 
-	err := dbConnect.Delete(blog)
+	err := dbConnect.Delete("blog" + blog.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  http.StatusInternalServerError,
@@ -224,7 +279,6 @@ func DeleteBlog(c *gin.Context) {
 		})
 		return
 	}
-
 	err = rdbClient.Del(id).Err()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
@@ -239,10 +293,8 @@ func LikeBlog(c *gin.Context) {
 	fmt.Println(userid)
 	var blogBody models.Blog
 	c.BindJSON(&blogBody)
-
 	resblog := &models.Blog{ID: id}
 	err := dbConnect.Select(resblog)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  500,
@@ -250,17 +302,14 @@ func LikeBlog(c *gin.Context) {
 		})
 		return
 	}
-
 	user := &models.User{ID: userid}
 	err = dbConnect.Select(user)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "User not found!",
 		})
 		return
 	}
-
 	likers := resblog.LIKES
 	if likers != nil {
 		for i, x := range likers {
@@ -307,7 +356,6 @@ func LikeBlog(c *gin.Context) {
 		})
 		return
 	}
-
 	cacheblog, err := json.Marshal(blog)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -315,15 +363,13 @@ func LikeBlog(c *gin.Context) {
 		})
 		return
 	}
-
-	err = rdbClient.Set(blog.ID, cacheblog, 604800*time.Second).Err()
+	err = rdbClient.Set("blog"+blog.ID, cacheblog, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":  200,
 		"message": "You Liked this blog post!",
@@ -337,10 +383,8 @@ func CommentBLog(c *gin.Context) {
 	fmt.Println(userid)
 	var commentBody models.Comment
 	c.BindJSON(&commentBody)
-
 	resblog := &models.Blog{ID: id}
 	err := dbConnect.Select(resblog)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  500,
@@ -348,17 +392,14 @@ func CommentBLog(c *gin.Context) {
 		})
 		return
 	}
-
 	user := &models.User{ID: userid}
 	err = dbConnect.Select(user)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "User not found!",
 		})
 		return
 	}
-
 	commenters := resblog.COMMENTS
 	commenter := models.Comment{
 		ID:        userid,
@@ -367,9 +408,7 @@ func CommentBLog(c *gin.Context) {
 		EDITED:    false,
 		UPDATEDAT: time.Now(),
 	}
-
 	commenters = append(commenters, commenter)
-
 	blog := models.Blog{}
 	_, err = dbConnect.Model(&blog).Set("comments = ?", commenters).Where("id = ?", id).Update()
 	if err != nil {
@@ -386,18 +425,57 @@ func CommentBLog(c *gin.Context) {
 		})
 		return
 	}
-
-	err = rdbClient.Set(blog.ID, cacheblog, 604800*time.Second).Err()
+	err = rdbClient.Set("blog"+blog.ID, cacheblog, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":  200,
 		"message": "Commented to blog post!",
+	})
+	return
+}
+
+func ResetBlogCache(c *gin.Context) {
+	var blogList []models.Blog
+	var blog models.Blog
+	keys := rdbClient.Keys("blog*")
+	keyres := keys.Val()
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &blog)
+		if blog.AUTHOR != "" {
+			blogList = append(blogList, blog)
+		}
+	}
+	if len(blogList) != 0 {
+		for _, key := range blogList {
+			err := rdbClient.Del("blog" + key.ID).Err()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": err,
+				})
+				return
+			}
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"msg":    "resetted cache",
+			"status": "from redis",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "failed to reset",
 	})
 	return
 }
