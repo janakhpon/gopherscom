@@ -33,7 +33,8 @@ func GetApptypeList(c *gin.Context) {
 
 	if len(apptypeList) != 0 {
 		c.JSON(http.StatusOK, gin.H{
-			"data": apptypeList,
+			"data":   apptypeList,
+			"status": "from redis",
 		})
 		return
 	}
@@ -49,6 +50,24 @@ func GetApptypeList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"data": apptypeList,
 	})
+
+	for _, key := range apptypeList {
+		cacheapptype := models.Apptype{
+			ID:          key.ID,
+			NAME:        key.NAME,
+			DESCRIPTION: key.DESCRIPTION,
+			AUTHOR:      key.AUTHOR,
+			CREATEDAT:   key.CREATEDAT,
+			UPDATEDAT:   key.UPDATEDAT,
+		}
+		err = rdbClient.Set("apptype"+cacheapptype.ID, cacheapptype, 604800*time.Second).Err()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
+	}
 	return
 }
 
@@ -65,8 +84,9 @@ func GetApptype(c *gin.Context) {
 	err = json.Unmarshal([]byte(val), &apptype)
 	if apptype != nil {
 		c.JSON(http.StatusOK, gin.H{
-			"msg":  "succeed",
-			"data": apptype,
+			"msg":    "succeed",
+			"data":   apptype,
+			"status": "from redis",
 		})
 		return
 	}
@@ -95,8 +115,9 @@ func GetApptype(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"msg":  "succeed",
-		"data": apptype,
+		"msg":    "succeed",
+		"data":   apptype,
+		"status": "from redis",
 	})
 	return
 }
@@ -140,6 +161,7 @@ func CreateApptype(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "created",
 		"data":    &apptype,
+		"status":  "from redis",
 	})
 
 	return
@@ -195,6 +217,7 @@ func UpdateApptype(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "updated",
 		"data":    &apptype,
+		"status":  "from redis",
 	})
 	return
 }
