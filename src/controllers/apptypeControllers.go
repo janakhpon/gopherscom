@@ -12,8 +12,33 @@ import (
 
 func GetApptypeList(c *gin.Context) {
 	var apptypeList []models.Apptype
-	err := dbConnect.Model(&apptypeList).Select()
+	var apptype models.Apptype
 
+	keys := rdbClient.Keys("apptype*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &apptype)
+		if apptype.AUTHOR != "" {
+			apptypeList = append(apptypeList, apptype)
+		}
+	}
+
+	if len(apptypeList) != 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"data": apptypeList,
+		})
+		return
+	}
+
+	err := dbConnect.Model(&apptypeList).Select()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "something went wrong",
@@ -30,7 +55,7 @@ func GetApptypeList(c *gin.Context) {
 func GetApptype(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	apptype := &models.Apptype{ID: id}
-	val, err := rdbClient.Get(id).Result()
+	val, err := rdbClient.Get("apptype" + id).Result()
 	if err != nil {
 		c.JSON(http.StatusAccepted, gin.H{
 			"msg": "failed to get user from cache",
@@ -49,6 +74,22 @@ func GetApptype(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
+		})
+		return
+	}
+
+	cacheapptype, err := json.Marshal(apptype)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set("apptype"+apptype.ID, cacheapptype, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
 		})
 		return
 	}
@@ -88,7 +129,7 @@ func CreateApptype(c *gin.Context) {
 		return
 	}
 
-	err = rdbClient.Set(apptype.ID, cacheapptype, 604800*time.Second).Err()
+	err = rdbClient.Set("apptype"+apptype.ID, cacheapptype, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -143,7 +184,7 @@ func UpdateApptype(c *gin.Context) {
 		return
 	}
 
-	err = rdbClient.Set(apptype.ID, cacheapptype, 604800*time.Second).Err()
+	err = rdbClient.Set("apptype"+apptype.ID, cacheapptype, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -173,7 +214,7 @@ func DeleteApptype(c *gin.Context) {
 		return
 	}
 
-	err = rdbClient.Del(id).Err()
+	err = rdbClient.Del("apptype" + id).Err()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Deleted!",
