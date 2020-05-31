@@ -21,6 +21,33 @@ func RemoveEnrollmentByIndex(s []models.Enroller, index int) []models.Enroller {
 
 func GetBootcampList(c *gin.Context) {
 	var bootcampList []models.Bootcamp
+	var bootcamp models.Bootcamp
+
+	keys := rdbClient.Keys("bootcamp*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &bootcamp)
+		if bootcamp.AUTHOR != "" {
+			bootcampList = append(bootcampList, bootcamp)
+		}
+	}
+
+	if len(bootcampList) != 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"data":   bootcampList,
+			"status": "from redis",
+		})
+		return
+	}
+
 	err := dbConnect.Model(&bootcampList).Select()
 
 	if err != nil {
@@ -28,6 +55,40 @@ func GetBootcampList(c *gin.Context) {
 			"msg": "something went wrong",
 		})
 		return
+	}
+
+	for _, key := range bootcampList {
+		bootcamp := models.Bootcamp{
+			ID:          key.ID,
+			TOPIC:       key.TOPIC,
+			INSTRUCTORS: key.INSTRUCTORS,
+			ADDRESS:     key.ADDRESS,
+			LAT:         key.LAT,
+			LON:         key.LON,
+			STUDENTS:    key.STUDENTS,
+			ENROLLMENTS: key.ENROLLMENTS,
+			DESCRIPTION: key.DESCRIPTION,
+			AVAILABLE:   true,
+			STARTEDAT:   key.STARTEDAT,
+			FINISHEDAT:  key.FINISHEDAT,
+			AUTHOR:      key.AUTHOR,
+			CREATEDAT:   key.CREATEDAT,
+			UPDATEDAT:   time.Now(),
+		}
+		cachebootcamp, err := json.Marshal(bootcamp)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
+		err = rdbClient.Set("bootcamp"+bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -39,17 +100,21 @@ func GetBootcampList(c *gin.Context) {
 func GetBootcamp(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	bootcamp := &models.Bootcamp{ID: id}
-	val, err := rdbClient.Get(id).Result()
+	val, err := rdbClient.Get("bootcamp" + id).Result()
 	if err != nil {
-
-	}
-	err = json.Unmarshal([]byte(val), &bootcamp)
-	if bootcamp != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"msg":  "succeed",
-			"data": bootcamp,
+		c.JSON(http.StatusAccepted, gin.H{
+			"msg": "failed to get user from cache",
 		})
-		return
+	} else {
+		err = json.Unmarshal([]byte(val), &bootcamp)
+		if bootcamp != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":    "succeed",
+				"data":   bootcamp,
+				"status": "from redis",
+			})
+			return
+		}
 	}
 	err = dbConnect.Select(bootcamp)
 	if err != nil {
@@ -59,6 +124,21 @@ func GetBootcamp(c *gin.Context) {
 		return
 	}
 
+	cachebootcamp, err := json.Marshal(bootcamp)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set("bootcamp"+bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"msg":  "succeed",
 		"data": bootcamp,
@@ -104,7 +184,7 @@ func CreateBootcamp(c *gin.Context) {
 		return
 	}
 
-	err = rdbClient.Set(bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
+	err = rdbClient.Set("bootcamp"+bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -168,7 +248,7 @@ func UpdateBootcamp(c *gin.Context) {
 		return
 	}
 
-	err = rdbClient.Set(bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
+	err = rdbClient.Set("bootcamp"+bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -208,7 +288,7 @@ func SetBootcampAvailability(c *gin.Context) {
 		return
 	}
 
-	err = rdbClient.Set(bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
+	err = rdbClient.Set("bootcamp"+bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -291,7 +371,7 @@ func EnrollBootcamp(c *gin.Context) {
 		return
 	}
 
-	err = rdbClient.Set(bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
+	err = rdbClient.Set("bootcamp"+bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -389,7 +469,7 @@ func LikeBootcamp(c *gin.Context) {
 		return
 	}
 
-	err = rdbClient.Set(bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
+	err = rdbClient.Set("bootcamp"+bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -461,7 +541,7 @@ func CommentBootcamp(c *gin.Context) {
 		return
 	}
 
-	err = rdbClient.Set(bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
+	err = rdbClient.Set("bootcamp"+bootcamp.ID, cachebootcamp, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -490,7 +570,7 @@ func DeleteBootcamp(c *gin.Context) {
 		})
 		return
 	}
-	err = rdbClient.Del(id).Err()
+	err = rdbClient.Del("bootcamp" + id).Err()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Deleted!",
