@@ -12,6 +12,33 @@ import (
 
 func GetPlatformList(c *gin.Context) {
 	var platformList []models.Platform
+	var platform models.Platform
+
+	keys := rdbClient.Keys("platform*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &platform)
+		if platform.AUTHOR != "" {
+			platformList = append(platformList, platform)
+		}
+	}
+
+	if len(platformList) != 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"data":   platformList,
+			"status": "from redis",
+		})
+		return
+	}
+
 	err := dbConnect.Model(&platformList).Select()
 
 	if err != nil {
@@ -19,6 +46,31 @@ func GetPlatformList(c *gin.Context) {
 			"msg": "something went wrong",
 		})
 		return
+	}
+
+	for _, key := range platformList {
+		platform := models.Platform{
+			ID:          key.ID,
+			NAME:        key.NAME,
+			DESCRIPTION: key.DESCRIPTION,
+			AUTHOR:      key.AUTHOR,
+			CREATEDAT:   key.CREATEDAT,
+			UPDATEDAT:   key.UPDATEDAT,
+		}
+		cacheplatform, err := json.Marshal(platform)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
+		err = rdbClient.Set("platform"+platform.ID, cacheplatform, 604800*time.Second).Err()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -30,18 +82,24 @@ func GetPlatformList(c *gin.Context) {
 func GetPlatform(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	platform := &models.Platform{ID: id}
-	val, err := rdbClient.Get(id).Result()
-	if err != nil {
 
-	}
-	err = json.Unmarshal([]byte(val), &platform)
-	if platform != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"msg":  "succeed",
-			"data": platform,
+	val, err := rdbClient.Get("platform" + id).Result()
+	if err != nil {
+		c.JSON(http.StatusAccepted, gin.H{
+			"msg": "failed to get user from cache",
 		})
-		return
+	} else {
+		err = json.Unmarshal([]byte(val), &platform)
+		if platform != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":    "succeed",
+				"data":   platform,
+				"status": "from redis",
+			})
+			return
+		}
 	}
+
 	err = dbConnect.Select(platform)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -53,6 +111,22 @@ func GetPlatform(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
+		})
+		return
+	}
+
+	cacheplatform, err := json.Marshal(platform)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set("platform"+platform.ID, cacheplatform, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
 		})
 		return
 	}
@@ -91,7 +165,8 @@ func CreatePlatform(c *gin.Context) {
 		})
 		return
 	}
-	err = rdbClient.Set(platform.ID, cacheplatform, 604800*time.Second).Err()
+
+	err = rdbClient.Set("platform"+platform.ID, cacheplatform, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -143,7 +218,8 @@ func UpdatePlatform(c *gin.Context) {
 		})
 		return
 	}
-	err = rdbClient.Set(platform.ID, cacheplatform, 604800*time.Second).Err()
+
+	err = rdbClient.Set("platform"+platform.ID, cacheplatform, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -171,7 +247,7 @@ func DeletePlatform(c *gin.Context) {
 		})
 		return
 	}
-	err = rdbClient.Del(id).Err()
+	err = rdbClient.Del("platform" + id).Err()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Deleted!",

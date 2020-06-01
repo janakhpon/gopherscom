@@ -12,8 +12,34 @@ import (
 )
 
 func GetProfileList(c *gin.Context) {
-	var profilelist []models.Profile
-	err := dbConnect.Model(&profilelist).Select()
+	var profileList []models.Profile
+	var profile models.Profile
+
+	keys := rdbClient.Keys("profile*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &profile)
+		if profile.ID != "" {
+			profileList = append(profileList, profile)
+		}
+	}
+
+	if len(profileList) != 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"data":   profileList,
+			"status": "from redis",
+		})
+		return
+	}
+	err := dbConnect.Model(&profileList).Select()
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -22,8 +48,46 @@ func GetProfileList(c *gin.Context) {
 		return
 	}
 
+	for _, key := range profileList {
+		profile := models.Profile{
+			ID:         key.ID,
+			USERID:     key.USERID,
+			CAREER:     key.CAREER,
+			FRAMEWORKS: key.FRAMEWORKS,
+			LANGUAGES:  key.LANGUAGES,
+			PLATFORMS:  key.PLATFORMS,
+			DATABASES:  key.DATABASES,
+			OTHERS:     key.OTHERS,
+			SEX:        key.SEX,
+			BIRTHDATE:  key.BIRTHDATE,
+			ADDRESS:    key.ADDRESS,
+			ZIPCODE:    key.ZIPCODE,
+			CITY:       key.CITY,
+			STATE:      key.STATE,
+			COUNTRY:    key.COUNTRY,
+			LAT:        key.LAT,
+			LON:        key.LON,
+			CREATEDAT:  key.CREATEDAT,
+			UPDATEDAT:  key.UPDATEDAT,
+		}
+		cacheprofile, err := json.Marshal(profile)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
+		err = rdbClient.Set("profile"+profile.ID, cacheprofile, 604800*time.Second).Err()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"data": profilelist,
+		"data": profileList,
 	})
 	return
 }
@@ -61,18 +125,17 @@ func CreateProfile(c *gin.Context) {
 		})
 		return
 	}
-	redisprofile, err := json.Marshal(profile)
+	cacheprofile, err := json.Marshal(profile)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": insertError,
+			"message": err,
 		})
 		return
 	}
-
-	err = rdbClient.Set("profileinfo", redisprofile, 604800*time.Second).Err()
+	err = rdbClient.Set("profile"+profile.ID, cacheprofile, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"message": insertError,
+			"message": err,
 		})
 		return
 	}
@@ -139,15 +202,14 @@ func UpdateProfile(c *gin.Context) {
 	// 	return
 	// }
 
-	redisprofile, err := json.Marshal(profile)
+	cacheprofile, err := json.Marshal(profile)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
 		})
 		return
 	}
-
-	err = rdbClient.Set("profileinfo", redisprofile, 604800*time.Second).Err()
+	err = rdbClient.Set("profile"+profile.ID, cacheprofile, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -165,11 +227,43 @@ func UpdateProfile(c *gin.Context) {
 func GetByID(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	profile := models.Profile{ID: id}
-	err := dbConnect.Select(&profile)
+
+	val, err := rdbClient.Get("profile" + id).Result()
+	if err != nil {
+		c.JSON(http.StatusAccepted, gin.H{
+			"msg": "failed to get user from cache",
+		})
+	} else {
+		err = json.Unmarshal([]byte(val), &profile)
+		if profile.ID != "" {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":    "succeed",
+				"data":   profile,
+				"status": "from redis",
+			})
+			return
+		}
+	}
+
+	err = dbConnect.Select(&profile)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
+		})
+		return
+	}
+	cacheprofile, err := json.Marshal(profile)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+	err = rdbClient.Set("profile"+profile.ID, cacheprofile, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
 		})
 		return
 	}
@@ -197,6 +291,21 @@ func GetProfileByUser(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
+		})
+		return
+	}
+
+	cacheprofile, err := json.Marshal(resprofile)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+	err = rdbClient.Set("profile"+resprofile.ID, cacheprofile, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
 		})
 		return
 	}

@@ -12,6 +12,33 @@ import (
 
 func GetOtherList(c *gin.Context) {
 	var otherList []models.Other
+	var other models.Other
+
+	keys := rdbClient.Keys("other*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &other)
+		if other.AUTHOR != "" {
+			otherList = append(otherList, other)
+		}
+	}
+
+	if len(otherList) != 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"data":   otherList,
+			"status": "from redis",
+		})
+		return
+	}
+
 	err := dbConnect.Model(&otherList).Select()
 
 	if err != nil {
@@ -19,6 +46,31 @@ func GetOtherList(c *gin.Context) {
 			"msg": "something went wrong",
 		})
 		return
+	}
+
+	for _, key := range otherList {
+		other := models.Other{
+			ID:          key.ID,
+			NAME:        key.NAME,
+			DESCRIPTION: key.DESCRIPTION,
+			AUTHOR:      key.AUTHOR,
+			CREATEDAT:   key.CREATEDAT,
+			UPDATEDAT:   key.UPDATEDAT,
+		}
+		cacheother, err := json.Marshal(other)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
+		err = rdbClient.Set("other"+other.ID, cacheother, 604800*time.Second).Err()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -30,22 +82,42 @@ func GetOtherList(c *gin.Context) {
 func GetOther(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	other := &models.Other{ID: id}
-	val, err := rdbClient.Get(id).Result()
+	val, err := rdbClient.Get("other" + id).Result()
 	if err != nil {
-
-	}
-	err = json.Unmarshal([]byte(val), &other)
-	if other != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"msg":  "succeed",
-			"data": other,
+		c.JSON(http.StatusAccepted, gin.H{
+			"msg": "failed to get user from cache",
 		})
-		return
+	} else {
+		err = json.Unmarshal([]byte(val), &other)
+		if other != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":    "succeed",
+				"data":   other,
+				"status": "from redis",
+			})
+			return
+		}
 	}
+
 	err = dbConnect.Select(other)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
+		})
+		return
+	}
+	cacheother, err := json.Marshal(other)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set("other"+other.ID, cacheother, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
 		})
 		return
 	}
@@ -83,7 +155,8 @@ func CreateOther(c *gin.Context) {
 		})
 		return
 	}
-	err = rdbClient.Set(other.ID, cacheother, 604800*time.Second).Err()
+
+	err = rdbClient.Set("other"+other.ID, cacheother, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -135,7 +208,8 @@ func UpdateOther(c *gin.Context) {
 		})
 		return
 	}
-	err = rdbClient.Set(other.ID, cacheother, 604800*time.Second).Err()
+
+	err = rdbClient.Set("other"+other.ID, cacheother, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -162,7 +236,7 @@ func DeleteOther(c *gin.Context) {
 		})
 		return
 	}
-	err = rdbClient.Del(id).Err()
+	err = rdbClient.Del("other" + id).Err()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Deleted!",
