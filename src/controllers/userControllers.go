@@ -23,6 +23,33 @@ const (
 
 func GetUserList(c *gin.Context) {
 	var userList []models.User
+	var user models.User
+
+	keys := rdbClient.Keys("user*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &user)
+		if user.NAME != "" {
+			userList = append(userList, user)
+		}
+	}
+
+	if len(userList) != 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"data":   userList,
+			"status": "from redis",
+		})
+		return
+	}
+
 	err := dbConnect.Model(&userList).Select()
 
 	if err != nil {
@@ -30,6 +57,31 @@ func GetUserList(c *gin.Context) {
 			"msg": "something went wrong",
 		})
 		return
+	}
+
+	for _, key := range userList {
+		user := models.User{
+			ID:        key.ID,
+			NAME:      key.NAME,
+			EMAIL:     key.EMAIL,
+			PASSWORD:  key.PASSWORD,
+			CREATEDAT: key.CREATEDAT,
+			UPDATEDAT: key.UPDATEDAT,
+		}
+		cacheuser, err := json.Marshal(user)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
+		err = rdbClient.Set("user"+user.ID, cacheuser, 604800*time.Second).Err()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -41,22 +93,43 @@ func GetUserList(c *gin.Context) {
 func GetUser(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	user := &models.User{ID: id}
-	val, err := rdbClient.Get(id).Result()
+	val, err := rdbClient.Get("user" + id).Result()
 	if err != nil {
-
-	}
-	err = json.Unmarshal([]byte(val), &user)
-	if user != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"msg":  "succeed",
-			"data": user,
+		c.JSON(http.StatusAccepted, gin.H{
+			"msg": "failed to get user from cache",
 		})
-		return
+	} else {
+		err = json.Unmarshal([]byte(val), &user)
+		if user != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":    "succeed",
+				"data":   user,
+				"status": "from redis",
+			})
+			return
+		}
 	}
+
 	err = dbConnect.Select(user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"msg": "failed to fetch",
+		})
+		return
+	}
+
+	cacheuser, err := json.Marshal(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set("user"+user.ID, cacheuser, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
 		})
 		return
 	}
@@ -132,6 +205,22 @@ func UserSignup(c *gin.Context) {
 		})
 		return
 	}
+	cacheuser, err := json.Marshal(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set("user"+user.ID, cacheuser, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "created",
 		"data":    &user,
@@ -269,19 +358,35 @@ func UserSignin(c *gin.Context) {
 	// 	UPDATEDAT:  resprofile.UPDATEDAT,
 	// }
 
-	redisuserval, err := json.Marshal(redisuser)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	// redisprofileval, err := json.Marshal(redisprofile)
+	// redisuserval, err := json.Marshal(redisuser)
 	// if err != nil {
 	// 	fmt.Println(err)
 	// }
 
-	err = rdbClient.Set("userinfo", redisuserval, 0).Err()
+	// // redisprofileval, err := json.Marshal(redisprofile)
+	// // if err != nil {
+	// // 	fmt.Println(err)
+	// // }
+
+	// err = rdbClient.Set("userinfo", redisuserval, 0).Err()
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+
+	cacheuser, err := json.Marshal(redisuser)
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set("user"+user.ID, cacheuser, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
 	}
 
 	// err = rdbClient.Set("profileinfo", redisprofileval, 0).Err()

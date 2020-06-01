@@ -12,6 +12,33 @@ import (
 
 func GetLibraryList(c *gin.Context) {
 	var libraryList []models.Library
+	var library models.Library
+
+	keys := rdbClient.Keys("library*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &library)
+		if library.AUTHOR != "" {
+			libraryList = append(libraryList, library)
+		}
+	}
+
+	if len(libraryList) != 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"data":   libraryList,
+			"status": "from redis",
+		})
+		return
+	}
+
 	err := dbConnect.Model(&libraryList).Select()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -19,6 +46,31 @@ func GetLibraryList(c *gin.Context) {
 		})
 		return
 	}
+	for _, key := range libraryList {
+		library := models.Library{
+			ID:          key.ID,
+			NAME:        key.NAME,
+			DESCRIPTION: key.DESCRIPTION,
+			AUTHOR:      key.AUTHOR,
+			CREATEDAT:   key.CREATEDAT,
+			UPDATEDAT:   key.UPDATEDAT,
+		}
+		cachelibrary, err := json.Marshal(library)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
+		err = rdbClient.Set("library"+library.ID, cachelibrary, 604800*time.Second).Err()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": err,
+			})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"data": libraryList,
 	})
@@ -28,18 +80,23 @@ func GetLibraryList(c *gin.Context) {
 func GetLibrary(c *gin.Context) {
 	id := c.Request.URL.Query().Get("id")
 	library := &models.Library{ID: id}
-	val, err := rdbClient.Get(id).Result()
+	val, err := rdbClient.Get("library" + id).Result()
 	if err != nil {
-
-	}
-	err = json.Unmarshal([]byte(val), &library)
-	if library != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"msg":  "succeed",
-			"data": library,
+		c.JSON(http.StatusAccepted, gin.H{
+			"msg": "failed to get user from cache",
 		})
-		return
+	} else {
+		err = json.Unmarshal([]byte(val), &library)
+		if library != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":    "succeed",
+				"data":   library,
+				"status": "from redis",
+			})
+			return
+		}
 	}
+
 	err = dbConnect.Select(library)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -47,6 +104,23 @@ func GetLibrary(c *gin.Context) {
 		})
 		return
 	}
+
+	cachelibrary, err := json.Marshal(library)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set("library"+library.ID, cachelibrary, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"msg":  "succeed",
 		"data": library,
@@ -83,7 +157,7 @@ func CreateLibrary(c *gin.Context) {
 		return
 	}
 
-	err = rdbClient.Set(library.ID, cachelibrary, 604800*time.Second).Err()
+	err = rdbClient.Set("library"+library.ID, cachelibrary, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
@@ -130,6 +204,7 @@ func UpdateLibrary(c *gin.Context) {
 		})
 		return
 	}
+
 	cachelibrary, err := json.Marshal(library)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -138,13 +213,14 @@ func UpdateLibrary(c *gin.Context) {
 		return
 	}
 
-	err = rdbClient.Set(library.ID, cachelibrary, 604800*time.Second).Err()
+	err = rdbClient.Set("library"+library.ID, cachelibrary, 604800*time.Second).Err()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"message": err,
 		})
 		return
 	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "updated",
 		"data":    &library,
@@ -166,7 +242,7 @@ func DeleteLibrary(c *gin.Context) {
 		})
 		return
 	}
-	err = rdbClient.Del(id).Err()
+	err = rdbClient.Del("library" + id).Err()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Deleted!",
