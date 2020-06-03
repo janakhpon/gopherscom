@@ -249,3 +249,49 @@ func DeleteLibrary(c *gin.Context) {
 	})
 	return
 }
+
+func ResetLibraryCache(c *gin.Context) {
+	var libraryList []models.Library
+	var library models.Library
+
+	keys := rdbClient.Keys("library*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &library)
+		if library.AUTHOR != "" {
+			libraryList = append(libraryList, library)
+		}
+	}
+
+	if len(libraryList) != 0 {
+		for _, key := range libraryList {
+			err := rdbClient.Del("library" + key.ID).Err()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": err,
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"msg":    "resetted cache",
+			"status": "from redis",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "failed to reset",
+	})
+	return
+}

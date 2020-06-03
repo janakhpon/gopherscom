@@ -245,3 +245,49 @@ func DeleteTag(c *gin.Context) {
 	})
 	return
 }
+
+func ResetTagCache(c *gin.Context) {
+	var tagList []models.Tag
+	var tag models.Tag
+
+	keys := rdbClient.Keys("tag*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &tag)
+		if tag.AUTHOR != "" {
+			tagList = append(tagList, tag)
+		}
+	}
+
+	if len(tagList) != 0 {
+		for _, key := range tagList {
+			err := rdbClient.Del("tag" + key.ID).Err()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": err,
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"msg":    "resetted cache",
+			"status": "from redis",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "failed to reset",
+	})
+	return
+}

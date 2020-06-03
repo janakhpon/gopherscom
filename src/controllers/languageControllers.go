@@ -249,3 +249,49 @@ func DeleteLanguage(c *gin.Context) {
 	})
 	return
 }
+
+func ResetLanguageCache(c *gin.Context) {
+	var languageList []models.Language
+	var language models.Language
+
+	keys := rdbClient.Keys("language*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &language)
+		if language.AUTHOR != "" {
+			languageList = append(languageList, language)
+		}
+	}
+
+	if len(languageList) != 0 {
+		for _, key := range languageList {
+			err := rdbClient.Del("language" + key.ID).Err()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": err,
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"msg":    "resetted cache",
+			"status": "from redis",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "failed to reset",
+	})
+	return
+}

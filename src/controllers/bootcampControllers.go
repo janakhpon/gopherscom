@@ -577,3 +577,49 @@ func DeleteBootcamp(c *gin.Context) {
 	})
 	return
 }
+
+func ResetBootcampCache(c *gin.Context) {
+	var bootcampList []models.Bootcamp
+	var bootcamp models.Bootcamp
+
+	keys := rdbClient.Keys("bootcamp*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &bootcamp)
+		if bootcamp.AUTHOR != "" {
+			bootcampList = append(bootcampList, bootcamp)
+		}
+	}
+
+	if len(bootcampList) != 0 {
+		for _, key := range bootcampList {
+			err := rdbClient.Del("bootcamp" + key.ID).Err()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": err,
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"msg":    "resetted cache",
+			"status": "from redis",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "failed to reset",
+	})
+	return
+}

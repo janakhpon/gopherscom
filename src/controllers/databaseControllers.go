@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -129,6 +130,52 @@ func DeleteDatabase(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  http.StatusOK,
 		"message": "Deleted!",
+	})
+	return
+}
+
+func ResetDatabaseCache(c *gin.Context) {
+	var databaseList []models.Database
+	var database models.Database
+
+	keys := rdbClient.Keys("database*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &database)
+		if database.AUTHOR != "" {
+			databaseList = append(databaseList, database)
+		}
+	}
+
+	if len(databaseList) != 0 {
+		for _, key := range databaseList {
+			err := rdbClient.Del("database" + key.ID).Err()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": err,
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"msg":    "resetted cache",
+			"status": "from redis",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "failed to reset",
 	})
 	return
 }

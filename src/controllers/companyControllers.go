@@ -147,3 +147,49 @@ func AddCompany(c *gin.Context) {
 	})
 	return
 }
+
+func ResetCompanyCache(c *gin.Context) {
+	var companyList []models.Company
+	var company models.Company
+
+	keys := rdbClient.Keys("company*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &company)
+		if company.ID != "" {
+			companyList = append(companyList, company)
+		}
+	}
+
+	if len(companyList) != 0 {
+		for _, key := range companyList {
+			err := rdbClient.Del("company" + key.ID).Err()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": err,
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"msg":    "resetted cache",
+			"status": "from redis",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "failed to reset",
+	})
+	return
+}

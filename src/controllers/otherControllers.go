@@ -243,3 +243,49 @@ func DeleteOther(c *gin.Context) {
 	})
 	return
 }
+
+func ResetOtherCache(c *gin.Context) {
+	var otherList []models.Other
+	var other models.Other
+
+	keys := rdbClient.Keys("other*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &other)
+		if other.AUTHOR != "" {
+			otherList = append(otherList, other)
+		}
+	}
+
+	if len(otherList) != 0 {
+		for _, key := range otherList {
+			err := rdbClient.Del("other" + key.ID).Err()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": err,
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"msg":    "resetted cache",
+			"status": "from redis",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "failed to reset",
+	})
+	return
+}
