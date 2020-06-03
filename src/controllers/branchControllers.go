@@ -178,3 +178,49 @@ func DeleteCompanyBranch(c *gin.Context) {
 	})
 	return
 }
+
+func ResetBranchCache(c *gin.Context) {
+	var branchList []models.Branch
+	var branch models.Branch
+
+	keys := rdbClient.Keys("branch*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &branch)
+		if branch.ID != "" {
+			branchList = append(branchList, branch)
+		}
+	}
+
+	if len(branchList) != 0 {
+		for _, key := range branchList {
+			err := rdbClient.Del("branch" + key.ID).Err()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": err,
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"msg":    "resetted cache",
+			"status": "from redis",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "failed to reset",
+	})
+	return
+}

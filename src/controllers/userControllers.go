@@ -534,3 +534,49 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 }
+
+func ResetUserCache(c *gin.Context) {
+	var userList []models.User
+	var user models.User
+
+	keys := rdbClient.Keys("user*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &user)
+		if user.ID != "" {
+			userList = append(userList, user)
+		}
+	}
+
+	if len(userList) != 0 {
+		for _, key := range userList {
+			err := rdbClient.Del("user" + key.ID).Err()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": err,
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"msg":    "resetted cache",
+			"status": "from redis",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "failed to reset",
+	})
+	return
+}

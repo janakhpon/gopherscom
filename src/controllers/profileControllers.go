@@ -316,3 +316,49 @@ func GetProfileByUser(c *gin.Context) {
 	})
 	return
 }
+
+func ResetProfileCache(c *gin.Context) {
+	var profileList []models.Profile
+	var profile models.Profile
+
+	keys := rdbClient.Keys("profile*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &profile)
+		if profile.ID != "" {
+			profileList = append(profileList, profile)
+		}
+	}
+
+	if len(profileList) != 0 {
+		for _, key := range profileList {
+			err := rdbClient.Del("profile" + key.ID).Err()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": err,
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"msg":    "resetted cache",
+			"status": "from redis",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "failed to reset",
+	})
+	return
+}

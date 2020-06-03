@@ -31,6 +31,7 @@ func ExtRouter(mode string) *gin.Engine {
 	{
 		authedUserOnly.GET("/list", controllers.GetUserList)
 		authedUserOnly.GET("/byid", controllers.GetUser)
+		authedUserOnly.DELETE("/resetcache", controllers.ResetUserCache)
 	}
 
 	authedBlogOnly := router.Group("/protected/blog")
@@ -53,6 +54,7 @@ func ExtRouter(mode string) *gin.Engine {
 		authedProfileOnly.GET("/byid", controllers.GetByID)
 		authedProfileOnly.POST("/new", controllers.CreateProfile)
 		authedProfileOnly.PUT("/update", controllers.UpdateProfile)
+		authedProfileOnly.DELETE("/resetcache", controllers.ResetProfileCache)
 	}
 
 	authedApptypeOnly := router.Group("/protected/apptype")
@@ -76,6 +78,7 @@ func ExtRouter(mode string) *gin.Engine {
 		authedLibraryOnly.POST("/new", controllers.CreateLibrary)
 		authedLibraryOnly.PUT("/update", controllers.UpdateLibrary)
 		authedLibraryOnly.DELETE("/remove", controllers.DeleteLibrary)
+		authedLibraryOnly.DELETE("/resetcache", controllers.ResetLibraryCache)
 	}
 
 	authedOtherOnly := router.Group("/protected/other")
@@ -86,6 +89,18 @@ func ExtRouter(mode string) *gin.Engine {
 		authedOtherOnly.POST("/new", controllers.CreateOther)
 		authedOtherOnly.PUT("/update", controllers.UpdateOther)
 		authedOtherOnly.DELETE("/remove", controllers.DeleteOther)
+		authedOtherOnly.DELETE("/resetcache", controllers.ResetOtherCache)
+	}
+
+	authedPlatformOnly := router.Group("/protected/platform")
+	authedPlatformOnly.Use(controllers.TokenVerifyMiddleWare())
+	{
+		authedPlatformOnly.GET("/list", controllers.GetPlatformList)
+		authedPlatformOnly.GET("/byid", controllers.GetPlatform)
+		authedPlatformOnly.POST("/new", controllers.CreatePlatform)
+		authedPlatformOnly.PUT("/update", controllers.UpdatePlatform)
+		authedPlatformOnly.DELETE("/remove", controllers.DeletePlatform)
+		authedPlatformOnly.DELETE("/resetcache", controllers.ResetPlatformCache)
 	}
 
 	authedTagOnly := router.Group("/protected/tag")
@@ -96,6 +111,7 @@ func ExtRouter(mode string) *gin.Engine {
 		authedTagOnly.POST("/new", controllers.CreateTag)
 		authedTagOnly.PUT("/update", controllers.UpdateTag)
 		authedTagOnly.DELETE("/remove", controllers.DeleteTag)
+		authedTagOnly.DELETE("/resetcache", controllers.ResetTagCache)
 	}
 
 	authedLanguageOnly := router.Group("/protected/language")
@@ -106,6 +122,7 @@ func ExtRouter(mode string) *gin.Engine {
 		authedLanguageOnly.POST("/new", controllers.CreateLanguage)
 		authedLanguageOnly.PUT("/update", controllers.UpdateLanguage)
 		authedLanguageOnly.DELETE("/remove", controllers.DeleteLanguage)
+		authedLanguageOnly.DELETE("/resetcache", controllers.ResetLanguageCache)
 	}
 
 	authedFrameworkOnly := router.Group("/protected/framework")
@@ -116,6 +133,7 @@ func ExtRouter(mode string) *gin.Engine {
 		authedFrameworkOnly.POST("/new", controllers.CreateFramework)
 		authedFrameworkOnly.PUT("/update", controllers.UpdateFramework)
 		authedFrameworkOnly.DELETE("/remove", controllers.DeleteFramework)
+		authedFrameworkOnly.DELETE("/resetcache", controllers.ResetFrameworkCache)
 	}
 
 	authedDatabaseOnly := router.Group("/protected/database")
@@ -126,6 +144,7 @@ func ExtRouter(mode string) *gin.Engine {
 		authedDatabaseOnly.POST("/new", controllers.CreateDatabase)
 		authedDatabaseOnly.PUT("/update", controllers.UpdateDatabase)
 		authedDatabaseOnly.DELETE("/remove", controllers.DeleteDatabase)
+		authedDatabaseOnly.DELETE("/resetcache", controllers.ResetDatabaseCache)
 	}
 
 	authedBootcampOnly := router.Group("/protected/bootcamp")
@@ -140,6 +159,7 @@ func ExtRouter(mode string) *gin.Engine {
 		authedBootcampOnly.PUT("/enroll", controllers.EnrollBootcamp)
 		authedBootcampOnly.PUT("/like", controllers.LikeBootcamp)
 		authedBootcampOnly.PUT("/comment", controllers.CommentBootcamp)
+		authedBootcampOnly.DELETE("/resetcache", controllers.ResetBootcampCache)
 	}
 
 	CompanyOnly := router.Group("/public/company")
@@ -147,6 +167,7 @@ func ExtRouter(mode string) *gin.Engine {
 	{
 		CompanyOnly.GET("/list", controllers.GetCompanyList)
 		CompanyOnly.POST("/new", controllers.AddCompany)
+		CompanyOnly.DELETE("/resetcache", controllers.ResetCompanyCache)
 	}
 
 	BranchOnly := router.Group("/public/branch")
@@ -156,7 +177,7 @@ func ExtRouter(mode string) *gin.Engine {
 		BranchOnly.GET("/branches", controllers.GetCompanyBranches)
 		BranchOnly.PUT("/update", controllers.UpdateCompanyBranch)
 		BranchOnly.DELETE("/delete", controllers.DeleteCompanyBranch)
-
+		BranchOnly.DELETE("/resetcache", controllers.ResetBranchCache)
 	}
 
 	return router

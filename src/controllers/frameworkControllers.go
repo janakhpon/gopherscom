@@ -248,3 +248,49 @@ func DeleteFramework(c *gin.Context) {
 	})
 	return
 }
+
+func ResetFrameworkCache(c *gin.Context) {
+	var frameworkList []models.Framework
+	var framework models.Framework
+
+	keys := rdbClient.Keys("framework*")
+	keyres := keys.Val()
+
+	for _, key := range keyres {
+		val, err := rdbClient.Get(key).Result()
+		if err != nil {
+			c.JSON(http.StatusAccepted, gin.H{
+				"msg": "failed to get user from cache",
+			})
+			return
+		}
+		err = json.Unmarshal([]byte(val), &framework)
+		if framework.AUTHOR != "" {
+			frameworkList = append(frameworkList, framework)
+		}
+	}
+
+	if len(frameworkList) != 0 {
+		for _, key := range frameworkList {
+			err := rdbClient.Del("framework" + key.ID).Err()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": err,
+				})
+				return
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"msg":    "resetted cache",
+			"status": "from redis",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "failed to reset",
+	})
+	return
+}
