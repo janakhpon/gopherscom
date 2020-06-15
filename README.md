@@ -14,6 +14,7 @@ added soon.Here is a deployed link [HEROKU](https://gopherscom.herokuapp.com/)
 ## API LIST
 
 ### User
+[User](./docs/user.md)
 Signup, Signin, Refreshtoken, Getusers</code> : routes are available now at the moment and more services/features will
 be added soon.
 <table class="table table-hover">
