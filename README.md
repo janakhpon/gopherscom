@@ -14,9 +14,7 @@ added soon.Here is a deployed link [HEROKU](https://gopherscom.herokuapp.com/)
 ## API LIST
 
 ### User
-**User** is a about authetication and credentials. It primary have create account feature, `accessToken` and `refreshToken` feature.
-- [User](./docs/user.md)
-
+-  **[User](./docs/user.md)** is a about authetication and credentials. It primary have create account feature, `accessToken` and `refreshToken` feature.
 
 ### Profile
 - [Profile](./docs/profile.md)
