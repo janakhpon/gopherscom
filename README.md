@@ -7,11 +7,20 @@ added soon.Here is a deployed link [HEROKU](https://gopherscom.herokuapp.com/)
 
 
 ##
-
 ##
 
 
 ## API LIST
+
+##
+
+```go
+const PUBLIC_URL = "https://gopherscom.herokuapp.com/protected"
+const PROTECTED_URL = "https://gopherscom.herokuapp.com/public"
+const BASE_URL = "https://gopherscom.herokuapp.com/"
+```
+##
+
 
 ### User
 -  **[User](./docs/user.md)** is a about authetication and credentials. It primary have create account feature, `accessToken` and `refreshToken` feature.
@@ -56,5 +65,4 @@ added soon.Here is a deployed link [HEROKU](https://gopherscom.herokuapp.com/)
 - [Branch](./docs/branch.md)
 
 ##
-
 ##
