@@ -12,7 +12,7 @@ func ExtRouter(mode string) *gin.Engine {
 
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{
-			"message": "ma-ngay-ya-aung(Mon Language) || Mingalarbar(Burmese) || Hello(English) || Kon'nichiwa(Japanese) ",
+			"message": "Ma-Ngay-Ya-Aung(Mon Language) || Mingalarbar(Burmese) || Hello(English) || Kon'nichiwa(Japanese) ",
 			"from":    "Gophers(Go Developer) Community!",
 		})
 	})
@@ -184,6 +184,7 @@ func ExtRouter(mode string) *gin.Engine {
 	{
 		BranchOnly.POST("/new", controllers.AddCompanyBranch)
 		BranchOnly.GET("/branches", controllers.GetCompanyBranches)
+		BranchOnly.GET("/byid", controllers.GetBranch)
 	}
 
 	PrivateBranchOnly := router.Group("/protected/branch")

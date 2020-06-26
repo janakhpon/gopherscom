@@ -179,6 +179,58 @@ func DeleteCompanyBranch(c *gin.Context) {
 	return
 }
 
+func GetBranch(c *gin.Context) {
+	id := c.Request.URL.Query().Get("id")
+	branch := models.Branch{ID: id}
+	res, err := rdbClient.Get("branch" + id).Result()
+
+	if err != nil {
+		c.JSON(http.StatusAccepted, gin.H{
+			"msg": "failed to get user from cache",
+		})
+	} else {
+		err = json.Unmarshal([]byte(res), &branch)
+		if branch.CID != "" {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":    "succeed",
+				"data":   branch,
+				"status": "from redis",
+			})
+			return
+		}
+	}
+
+	err = dbConnect.Select(branch)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "failed to fetch",
+		})
+		return
+	}
+
+	cachebranch, err := json.Marshal(branch)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set("branch"+branch.ID, cachebranch, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  "succeed",
+		"data": branch,
+	})
+	return
+}
+
 func ResetBranchCache(c *gin.Context) {
 	var branchList []models.Branch
 	var branch models.Branch
