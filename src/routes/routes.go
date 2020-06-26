@@ -168,7 +168,15 @@ func ExtRouter(mode string) *gin.Engine {
 	{
 		CompanyOnly.GET("/list", controllers.GetCompanyList)
 		CompanyOnly.POST("/new", controllers.AddCompany)
-		CompanyOnly.DELETE("/resetcache", controllers.ResetCompanyCache)
+		CompanyOnly.GET("/byid", controllers.GetCompany)
+	}
+
+	PrivateCompanyOnly := router.Group("/protected/company")
+	PrivateCompanyOnly.Use()
+	{
+		PrivateCompanyOnly.PUT("/update", controllers.UpdateCompany)
+		PrivateCompanyOnly.DELETE("/remove", controllers.DeleteCompany)
+		PrivateCompanyOnly.DELETE("/resetcache", controllers.ResetCompanyCache)
 	}
 
 	BranchOnly := router.Group("/public/branch")
@@ -176,9 +184,14 @@ func ExtRouter(mode string) *gin.Engine {
 	{
 		BranchOnly.POST("/new", controllers.AddCompanyBranch)
 		BranchOnly.GET("/branches", controllers.GetCompanyBranches)
-		BranchOnly.PUT("/update", controllers.UpdateCompanyBranch)
-		BranchOnly.DELETE("/delete", controllers.DeleteCompanyBranch)
-		BranchOnly.DELETE("/resetcache", controllers.ResetBranchCache)
+	}
+
+	PrivateBranchOnly := router.Group("/protected/branch")
+	PrivateBranchOnly.Use()
+	{
+		PrivateBranchOnly.PUT("/update", controllers.UpdateCompanyBranch)
+		PrivateBranchOnly.DELETE("/delete", controllers.DeleteCompanyBranch)
+		PrivateBranchOnly.DELETE("/resetcache", controllers.ResetBranchCache)
 	}
 
 	return router
