@@ -15,8 +15,8 @@ added soon.Here is a deployed link [HEROKU](https://gopherscom.herokuapp.com/)
 ##
 
 ```go
-const PUBLIC_URL = "https://gopherscom.herokuapp.com/protected"
-const PROTECTED_URL = "https://gopherscom.herokuapp.com/public"
+const PUBLIC_URL = "https://gopherscom.herokuapp.com/public"
+const PROTECTED_URL = "https://gopherscom.herokuapp.com/protected"
 const BASE_URL = "https://gopherscom.herokuapp.com/"
 ```
 ##
@@ -26,33 +26,41 @@ const BASE_URL = "https://gopherscom.herokuapp.com/"
 **[User](./docs/user.md)** is a about authetication and credentials. It primary have create account feature, `accessToken` and `refreshToken` feature.
 ##
 
+
 ### Profile
-[Profile](./docs/profile.md)
+**[Profile](./docs/profile.md)** route is mostly concerned with user detail information and it provides data from both `Postgresql database` and `Redis cache`.
 ##
+
 
 ### Blog
-- [Blog](./docs/blog.md)
+**[Blog](./docs/blog.md)** route is mostly concerned with `Blog` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`.
 ##
+
 
 ### Apptype
-- [Apptype](./docs/apptype.md)
+**[Apptype](./docs/apptype.md)** route is mostly concerned with `Apptype tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of *apptype tag items*.
 ##
+
 
 ### Library
-- [Library](./docs/library.md)
+**[Library](./docs/library.md)** route is mostly concerned with `Library tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of *library tag items*.
 ##
+
 
 ### Other
-- [Other](./docs/other.md)
+**[Other](./docs/other.md)** route is mostly concerned with `Other tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of *other tag items*.
 ##
+
 
 ### Platform
-- [Platform](./docs/platform.md)
+**[Platform](./docs/platform.md)** route is mostly concerned with `Platform tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of *platform tag items*.
 ##
 
+
 ### Tag
-- [Tag](./docs/tag.md)
+**[Tag](./docs/tag.md)** route is mostly concerned with `tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of *tag items*.
 ##
+
 
 ### Language
 - [Language](./docs/language.md)
