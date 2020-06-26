@@ -28,7 +28,6 @@ const BASE_URL = "https://gopherscom.herokuapp.com/"
 ### User
 **[User](./docs/user.md)** is a about authetication and credentials. It primary have create account feature, `accessToken` and `refreshToken` feature.
 
-
 #### User Model
 
 ```go
@@ -50,49 +49,182 @@ type User struct {
 
 ### Profile
 **[Profile](./docs/profile.md)** route is mostly concerned with user detail information and it provides data from both `Postgresql database` and `Redis cache`.
+
+#### Profile Model
+
+```go
+
+type Profile struct {
+	ID         string    `json:"id"`
+	USERID     string    `json:"userid"`
+	CAREER     string    `json:"career"`
+	FRAMEWORKS []string  `json:"frameworks"`
+	LANGUAGES  []string  `json:"languages"`
+	PLATFORMS  []string  `json:"platforms"`
+	DATABASES  []string  `json:"databases"`
+	OTHERS     []string  `json:"others"`
+	SEX        string    `json:"sex"`
+	BIRTHDATE  string    `json:"birthdate"`
+	ADDRESS    string    `json:"address"`
+	ZIPCODE    string    `json:"zipcode"`
+	CITY       string    `json:"city"`
+	STATE      string    `json:"state"`
+	COUNTRY    string    `json:"country"`
+	LAT        float64   `json:"lat"`
+	LON        float64   `json:"lon"`
+	CREATEDAT  time.Time `json:"created_at"`
+	UPDATEDAT  time.Time `json:"updated_at"`
+}
+
+
+```
 ##
+
+
 
 
 ### Blog
 **[Blog](./docs/blog.md)** route is mostly concerned with `Blog` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. **Blog Service** is one of the main features of **GophersCom**.
+
+#### Blog Model
+
+```go
+
+type Blog struct {
+	ID        string    `json:"id"`
+	TITLE     string    `json:"title"`
+	BODY      string    `json:"body"`
+	PUBLIC    bool      `json:"public"`
+	APPTYPE   string    `json:"apptype"`
+	LANGUAGES []string  `json:"languages"`
+	TAGS      []string  `json:"tags"`
+	LIBRARIES []string  `json:"libraries"`
+	AUTHOR    string    `json:"author"`
+	LIKES     []Like    `json:"likes"`
+	COMMENTS  []Comment `json:"comments"`
+	CREATEDAT time.Time `json:"created_at"`
+	UPDATEDAT time.Time `json:"updated_at"`
+}
+
+
+```
 ##
 
 
 ### Apptype
 **[Apptype](./docs/apptype.md)** route is mostly concerned with `Apptype tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of **apptype tag items**.
+
+#### Apptype Model
+
+```go
+
+type Apptype struct {
+	ID          string    `json:"id"`
+	NAME        string    `json:"name"`
+	DESCRIPTION string    `json:"description"`
+	AUTHOR      string    `json:"author"`
+	CREATEDAT   time.Time `json:"created_at"`
+	UPDATEDAT   time.Time `json:"updated_at"`
+}
+
+
+```
 ##
 
 
 ### Library
 **[Library](./docs/library.md)** route is mostly concerned with `Library tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of **library tag items**.
+
+#### Library Model
+
+```go
+
+Library := Apptype
+
+
+```
 ##
 
 
 ### Other
 **[Other](./docs/other.md)** route is mostly concerned with `Other tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of **other tag items**.
+
+#### Other Model
+
+```go
+
+Other := Apptype
+
+
+```
 ##
 
 
 ### Platform
 **[Platform](./docs/platform.md)** route is mostly concerned with `Platform tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of **platform tag items**.
+
+#### Platform Model
+
+```go
+
+Platform := Apptype
+
+
+```
 ##
 
 
 ### Tag
 **[Tag](./docs/tag.md)** route is mostly concerned with `tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of **tag items**.
+
+#### Tag Model
+
+```go
+
+Tag := Apptype
+
+
+```
 ##
 
 
 ### Language
 **[Language](./docs/language.md)** route is mostly concerned with `language tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of **language tag items**.
+
+#### Library Model
+
+```go
+
+Language := Apptype
+
+
+```
 ##
 
 ### Framework
 **[Framework](./docs/framework.md)** route is mostly concerned with `framework tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of **framework tag items**.
+
+#### Framework Model
+
+```go
+
+Framework := Apptype
+
+
+```
 ##
 
 ### Database
 **[Database](./docs/database.md)** route is mostly concerned with `database tag` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. Its main use case is in `Frontend` dropdown or list of **database tag items**.
+
+#### Database Model
+
+```go
+
+Other := Apptype
+
+
+```
 ##
 
 
@@ -134,10 +266,66 @@ type Bootcamp struct {
 
 ### Company
 **[Company](./docs/company.md)** route is mostly concerned with `Company` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. **Company Service** is one of the main features of **GophersCom**.
+
+#### Company Model
+
+```go
+
+type Company struct {
+	ID          string    `json:"id"`
+	NAME        string    `json:"name"`
+	PRODUCTS    []string  `json:"products"`
+	EMPLOYEE    string    `json:"employee"`
+	BRANCHES    []*Branch `pg:",one2many:company_branches"`
+	FRAMEWORKS  []string  `json:"frameworks"`
+	LANGUAGES   []string  `json:"languages"`
+	PLATFORMS   []string  `json:"platforms"`
+	DATABASES   []string  `json:"databases"`
+	OTHERS      []string  `json:"others"`
+	ADDRESS     string    `json:"address"`
+	ZIPCODE     string    `json:"zipcode"`
+	CITY        string    `json:"city"`
+	STATE       string    `json:"state"`
+	COUNTRY     string    `json:"country"`
+	LAT         float64   `json:"lat"`
+	LON         float64   `json:"lon"`
+	FOUNDEDYEAR string    `json:"foundedyear"`
+	CREATEDAT   time.Time `json:"created_at"`
+	UPDATEDAT   time.Time `json:"updated_at"`
+}
+
+
+```
 ##
+
+
 
 ### Branch
 **[Branch](./docs/branch.md)** route is mostly concerned with `Company Branch` related information and it provides `CRUD` operations for both `Postgresql database` and `Redis cache`. **Company Service** is one of the main features of **GophersCom** and **Company Branch** is to provide the `connection & relationship between Company and Company Branches and how are related and where are they located with how many people in office`.
+
+#### Company Branch Model
+
+```go
+
+type Branch struct {
+	ID          string    `json:"id"`
+	CID         string    `json:"cid"`
+	NAME        string    `json:"name"`
+	ADDRESS     string    `json:"address"`
+	ZIPCODE     string    `json:"zipcode"`
+	CITY        string    `json:"city"`
+	STATE       string    `json:"state"`
+	COUNTRY     string    `json:"country"`
+	LAT         float64   `json:"lat"`
+	LON         float64   `json:"lon"`
+	FOUNDEDYEAR string    `json:"foundedyear"`
+	CREATEDAT   time.Time `json:"created_at"`
+	UPDATEDAT   time.Time `json:"updated_at"`
+}
+
+
+
+```
 ##
 
 ##
