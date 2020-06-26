@@ -12,7 +12,8 @@ func ExtRouter(mode string) *gin.Engine {
 
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{
-			"message": "Hello from Gopher Community!",
+			"message": "ma-ngay-ya-aung(Mon Language) || Mingalarbar(Burmese) || Hello(English) || Kon'nichiwa(Japanese) ",
+			"from":    "Gophers(Go Developer) Community!",
 		})
 	})
 	router.POST("/signup", controllers.UserSignup)
