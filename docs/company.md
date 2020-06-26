@@ -7,6 +7,7 @@ services/features will be added soon.
 ```go
 
 const companyURL = "https://gopherscom.herokuapp.com/public/company/"
+const privateCompanyURL = "https://gopherscom.herokuapp.com/protected/company/"
 
 ```
 ##
@@ -45,17 +46,39 @@ const companyURL = "https://gopherscom.herokuapp.com/public/company/"
                 </code>
             </td>
             <td><code>{ String, Float, Time, Boolean, Point}</code></td>
-            <td> <code>'/company/new'</code> route will allow you to publish a `company` on `GophersCom`.<code>{ Authenitication with valid accessToken is required }</code> </td>
+            <td> <code>'/company/new'</code> route will allow you to publish a `company` on `GophersCom`.</td>
         </tr>
         <tr>
-            <th scope="row">10</th>
+            <th scope="row">3</th>
+            <td><code>PUT</code></td>
+            <td>
+                <code>
+                privateCompanyURL+"update"
+                </code>
+            </td>
+            <td><code>{ String, Object }</code></td>
+            <td> <code>'/company/update'</code> route will allow you to update the <code>company</code> with related <code>{id}</code>. <code>{ Authenitication with valid accessToken is required }</code> . </td>
+        </tr>
+        <tr>
+            <th scope="row">4</th>
             <td><code>DELETE</code></td>
             <td>
                 <code>
-                 companyURL+"resetcache"
+                privateCompanyURL+"remove"
                 </code>
             </td>
-            <td><code>{ String}</code></td>
+            <td><code>{ String, Object }</code></td>
+            <td> <code>'/company/update'</code> route will allow you to delete the <code>company</code> with related <code>{id}</code>.<code>{ Authenitication with valid accessToken is required }</code> . </td>
+        </tr>
+        <tr>
+            <th scope="row">5</th>
+            <td><code>DELETE</code></td>
+            <td>
+                <code>
+                 privateCompanyURL+"resetcache"
+                </code>
+            </td>
+            <td><code>{ String }</code></td>
             <td> <code>'/'</code> route will allow you to reset all <code>company</code> data in 
                 <code>Redis cache</code>.
                 <code>{ Authenitication with valid accessToken is required }</code> . </td>

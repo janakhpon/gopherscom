@@ -148,6 +148,147 @@ func AddCompany(c *gin.Context) {
 	return
 }
 
+func GetCompany(c *gin.Context) {
+	id := c.Request.URL.Query().Get("id")
+	company := models.Company{ID: id}
+	res, err := rdbClient.Get("company" + id).Result()
+
+	if err != nil {
+		c.JSON(http.StatusAccepted, gin.H{
+			"msg": "failed to get user from cache",
+		})
+	} else {
+		err = json.Unmarshal([]byte(res), &company)
+		if company.NAME != "" {
+			c.JSON(http.StatusOK, gin.H{
+				"msg":    "succeed",
+				"data":   company,
+				"status": "from redis",
+			})
+			return
+		}
+	}
+
+	err = dbConnect.Select(company)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "failed to fetch",
+		})
+		return
+	}
+
+	cachecompany, err := json.Marshal(company)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set("company"+company.ID, cachecompany, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg":  "succeed",
+		"data": company,
+	})
+	return
+}
+
+func UpdateCompany(c *gin.Context) {
+	id := c.Request.URL.Query().Get("id")
+	var companyBody models.Company
+	c.BindJSON(&companyBody)
+	recompany := &models.Company{ID: id}
+
+	err := dbConnect.Select(recompany)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"msg": "failed to fetch",
+		})
+		return
+	}
+
+	company := models.Company{
+		ID:          id,
+		NAME:        companyBody.NAME,
+		PRODUCTS:    companyBody.PRODUCTS,
+		EMPLOYEE:    companyBody.EMPLOYEE,
+		FRAMEWORKS:  companyBody.FRAMEWORKS,
+		LANGUAGES:   companyBody.LANGUAGES,
+		PLATFORMS:   companyBody.PLATFORMS,
+		DATABASES:   companyBody.DATABASES,
+		OTHERS:      companyBody.OTHERS,
+		ADDRESS:     companyBody.ADDRESS,
+		ZIPCODE:     companyBody.ZIPCODE,
+		CITY:        companyBody.CITY,
+		STATE:       companyBody.STATE,
+		COUNTRY:     companyBody.COUNTRY,
+		LAT:         companyBody.LAT,
+		LON:         companyBody.LON,
+		FOUNDEDYEAR: companyBody.FOUNDEDYEAR,
+		CREATEDAT:   recompany.CREATEDAT,
+		UPDATEDAT:   time.Now(),
+	}
+	updateError := dbConnect.Update(&company)
+	if updateError != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": updateError,
+		})
+		return
+	}
+	cachecompany, err := json.Marshal(company)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	err = rdbClient.Set("company"+company.ID, cachecompany, 604800*time.Second).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": err,
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "updated",
+		"data":    &company,
+	})
+	return
+}
+
+func DeleteCompany(c *gin.Context) {
+	id := c.Request.URL.Query().Get("id")
+	var companyBody models.Company
+	c.BindJSON(&companyBody)
+	company := &models.Company{ID: id}
+
+	err := dbConnect.Delete(company)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  http.StatusInternalServerError,
+			"message": "Something went wrong",
+		})
+		return
+	}
+
+	err = rdbClient.Del("company" + id).Err()
+	c.JSON(http.StatusOK, gin.H{
+		"status":  http.StatusOK,
+		"message": "Deleted!",
+	})
+	return
+}
+
 func ResetCompanyCache(c *gin.Context) {
 	var companyList []models.Company
 	var company models.Company
