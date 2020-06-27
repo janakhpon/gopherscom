@@ -16,6 +16,7 @@ func ExtRouter(mode string) *gin.Engine {
 			"from":    "Gophers(Go Developer) Community!",
 		})
 	})
+
 	router.POST("/signup", controllers.UserSignup)
 	router.POST("/signin", controllers.UserSignin)
 	router.GET("/refreshToken", controllers.RefreshToken)
