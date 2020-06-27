@@ -24,7 +24,7 @@ const BASE_URL = "https://gopherscom.herokuapp.com/"
 ##
 
 
-**TEST** Use the default route `BASE_URL` and try ping the server and see the response.
+**TEST** :: use the default route `BASE_URL` and ping the server and see the response.
 
 
 <table class="table table-hover">
