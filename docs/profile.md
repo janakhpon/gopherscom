@@ -30,7 +30,7 @@ services/features will be added soon.
                 Database.<code>{ Authenitication with valid accessToken is required }</code> </td>
         </tr>
         <tr>
-            <th scope="row">1</th>
+            <th scope="row">2</th>
             <td><code>GET</code></td>
             <td>
                 <code>
@@ -43,7 +43,7 @@ services/features will be added soon.
                 Database using `userid`.<code>{ Authenitication with valid accessToken is required }</code> </td>
         </tr>
         <tr>
-            <th scope="row">2</th>
+            <th scope="row">3</th>
             <td><code>GET</code></td>
             <td>
                 <code>
@@ -55,7 +55,7 @@ services/features will be added soon.
                 on <code>profileid</code>.<code>{ refreshToken need to be valid }</code> </td>
         </tr>
         <tr>
-            <th scope="row">2</th>
+            <th scope="row">4</th>
             <td><code>POST</code></td>
             <td>
                 <code>
@@ -66,7 +66,7 @@ services/features will be added soon.
             <td> <code>'/profile/new'</code> route will allow you to add user profile data to database.<code>{ Authenitication with valid accessToken is required }</code> </td>
         </tr>
         <tr>
-            <th scope="row">3</th>
+            <th scope="row">5</th>
             <td><code>PUT</code></td>
             <td>
                 <code>
@@ -79,7 +79,7 @@ services/features will be added soon.
                 <code>{ Authenitication with valid accessToken is required }</code> . </td>
         </tr>
         <tr>
-            <th scope="row">4</th>
+            <th scope="row">6</th>
             <td><code>DELETE</code></td>
             <td>
                 <code>

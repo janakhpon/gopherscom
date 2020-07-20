@@ -1,9 +1,51 @@
+**Development Status** :: Please check the development status down below!!! .
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Development</th>
+            <th scope="col">Progress</th>
+            <th scope="col">Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Backend Server :<code>GophersCom</code></td>
+            <td>
+                Finished
+            </td>
+            <td> The backend server is finished for the time being but there is a good chance of `Elasticsearch Integration into SERVER` if necessary. </td>
+        </tr>
+		<tr>
+            <td>Frontend Client :<code>GophersCommunity</code></td>
+            <td>
+                has not started yet
+            </td>
+            <td> The frontend implementation is not yet started and will work on it as soon as i could. </td>
+        </tr>
+    </tbody>
+</table>
+
+
+##
+##
+
+# GophersCommunity
+
+**GophersCommunity** is the frontend implementation of **gopherscom** using [Typescript](https://www.typescriptlang.org/), [React](https://reactjs.org/) and [Material-ui](https://material-ui.com/).
+
+
+##
+##
+
+
+
 # GophersCom
 
 **gopherscom** is a GOPHERS(Go Developers) coding solution, trend in **Go** Programming Language related area and also as a knowledge sharing community especially for Golang developers. It is implemented using [Go](https://golang.org/) and **Go's** framework [Gin](https://github.com/gin-gonic) and [Postgresql](https://www.postgresql.org/) as persistant database. **gopherscom** provides a [RESTful Service](https://restfulapi.net/)
  and features like [Geojson](http://geojson.io/), [Email
-auth](https://mail.google.com/), [JWT with refreshToken](http://www.passportjs.org/) and [Redis Performance Caching](https://redis.io/) are included currently and more will be
+auth](https://mail.google.com/), [JWT with refreshToken](http://www.passportjs.org/) and [Redis Performance Caching](https://redis.io/) are currently included and more features and functions will be
 added soon. Here is a deployed link **[live on heroku](https://gopherscom.herokuapp.com/)** .
+
 
 
 ##
@@ -24,7 +66,7 @@ const BASE_URL = "https://gopherscom.herokuapp.com/"
 ##
 
 
-**TEST** Use the default route `BASE_URL` and try ping the server and see the response.
+**TEST** :: use the default route `BASE_URL` and ping the server and see the response.
 
 
 <table class="table table-hover">
@@ -47,7 +89,7 @@ const BASE_URL = "https://gopherscom.herokuapp.com/"
                 </code>
             </td>
             <td><code>{String}</code></td>
-            <td> <code>'/'</code> route will allow you to see the response whether the server is `[👍up]` or `[👎down]`. </td>
+            <td> <code>'/'</code> route will allow you to see the response whether the server is [👍up] or [👎down]. </td>
         </tr>
     </tbody>
 </table>
@@ -57,7 +99,7 @@ const BASE_URL = "https://gopherscom.herokuapp.com/"
 
 
 ### User
-**[User](./docs/user.md)** is a about authetication and credentials. It primary have create account feature, `accessToken` and `refreshToken` feature.
+**[User](./docs/user.md)** is a about authetication and credentials. It primarily has features like `createUserAccount`, `accessToken` and `refreshToken` feature.
 
 #### User Model
 
