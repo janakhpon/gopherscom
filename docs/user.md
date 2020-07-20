@@ -101,7 +101,7 @@ services/features will be added soon.
                 on <code>id</code>.<code>{ refreshToken need to be valid }</code> </td>
         </tr>
         <tr>
-            <th scope="row">4</th>
+            <th scope="row">3</th>
             <td><code>DELETE</code></td>
             <td>
                 <code>
