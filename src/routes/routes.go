@@ -12,7 +12,7 @@ func ExtRouter(mode string) *gin.Engine {
 
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{
-			"message": "Ma-Ngay-Ya-Aung(Mon Language) || Mingalarbar(Burmese) || Hello(English) || Kon'nichiwa(Japanese) ",
+			"message": "Welcome to Gopherscom!, A Community site for Go Developer",
 			"from":    "Gophers(Go Developer) Community!",
 		})
 	})
