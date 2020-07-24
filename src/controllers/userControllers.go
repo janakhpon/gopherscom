@@ -566,7 +566,6 @@ func ResetUserCache(c *gin.Context) {
 				return
 			}
 		}
-
 		c.JSON(http.StatusOK, gin.H{
 			"msg":    "reset cache successfully",
 			"status": "from redis",
