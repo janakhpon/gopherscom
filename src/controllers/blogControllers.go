@@ -468,7 +468,7 @@ func ResetBlogCache(c *gin.Context) {
 			}
 		}
 		c.JSON(http.StatusOK, gin.H{
-			"msg":    "resetted cache",
+			"msg":    "reset cache successfully",
 			"status": "from redis",
 		})
 		return
