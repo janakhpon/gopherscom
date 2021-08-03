@@ -11,15 +11,18 @@ import (
 )
 
 func Connect() *pg.DB {
-	godotenv.Load()
-
-	opts := &pg.Options{
-		User:     os.Getenv("DBUSER"),
-		Password: os.Getenv("PASSWORD"),
-		Addr:     os.Getenv("HOST"),
-		Database: os.Getenv("DB"),
+	err := godotenv.Load()
+	if err != nil {
+	  log.Fatal("Error loading .env file")
 	}
 
+
+	opts := &pg.Options{
+		User:     os.Getenv("DB_USERNAME"),
+		Password: os.Getenv("DB_PASSWORD"),
+		Addr:     os.Getenv("DB_HOST"),
+		Database: os.Getenv("DB_DATABASE"),
+	}
 	var db *pg.DB = pg.Connect(opts)
 	if db == nil {
 		log.Printf("Failed to connect")
