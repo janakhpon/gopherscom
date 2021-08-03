@@ -1,9 +1,5 @@
 version: "3.8"
 services:
-  # - MONGO_URI=mongodb://testUser:testPassword@mongodb:27017/todos?authSource=admin
-  # - PG_URL=postgresql://postgres:postgrespassword@localhost:5432/postgres?schema=public
-  # - MYSQL_URI=mysql://mysql:mysqlpassword@localhost:3306/database?schema=public
-
   postgresql:
     container_name: postgresql
     image: postgres:latest
